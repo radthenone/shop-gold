@@ -1,0 +1,121 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+license = { file = "LICENSE.txt" }
+keywords = ["your", "keywords", "here"]
+authors = [
+    { name = "Your Name", email = "your.email@example.com" },
+]
+readme = "README.md"
+
+dependencies = [
+    "boto3>=1.37.2 ; sys_platform == 'linux'",
+    "celery>=5.4.0",
+    "dj-rest-auth>=7.0.1",
+    "django==5.1.6",
+    "django-allauth[mfa,socialaccount]>=65.5.0",
+    "django-celery-beat>=2.7.0",
+    "django-cors-headers>=4.7.0",
+    "django-storages[s3]>=1.14.5",
+    "djangorestframework>=3.15.2",
+    "djangorestframework-simplejwt>=5.5.0",
+    "flower>=2.0.1",
+    "pillow>=11.1.0",
+    "pip-tools>=7.4.1",
+    "pre-commit>=4.1.0",
+    "psycopg2>=2.9.10 ; sys_platform == 'linux'",
+    "psycopg2-binary>=2.9.10 ; sys_platform == 'win32'",
+    "python-dotenv>=1.0.1",
+    "redis>=5.2.1",
+]
+[project.optional-dependencies]
+dev = [
+    "drf-spectacular>=0.28.0",
+    "rich>=13.9.4",
+]
+lint =[
+    "ruff>=0.9.6",
+]
+test = []
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    # project extra excludes
+    "*/migrations/*",
+]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "I",
+    "W505",
+    "PT018",
+    "SIM101",
+    "SIM114",
+    "PLE1142",
+    "RUF100",
+    "F404",
+    "TCH",
+    "B",
+    "C4",
+    "UP",
+    "N"
+]
+ignore = [
+    "PGH004",
+]
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"src/core/settings/dev.py" = ["F403", "F405"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["apps", "core"]
+
+[tool.uv]
+link-mode = "copy"

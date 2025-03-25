@@ -1,0 +1,22 @@
+meta {
+  name: register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BackendUrl}}/api/v1/users/register/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "Adam1",
+    "email": "adam1@example.com",
+    "password": "Test12345!",
+    "rewrite_password": "Test12345!",
+    "first_name": "Adam",
+    "last_name": "Scoot"
+  }
+}

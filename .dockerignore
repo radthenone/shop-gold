@@ -1,0 +1,78 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/*.py[cod]
+**/*$py.class
+**/.env
+**/.venv
+**/env/
+**/venv/
+**/.tox/
+**/.coverage
+**/.coverage.*
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/htmlcov/
+backend/.venv
+
+# Django
+**/db.sqlite3
+**/db.sqlite3-journal
+**/media/
+**/static/
+**/staticfiles/
+
+# Node/Angular
+**/node_modules/
+**/npm-debug.log
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.angular/cache
+**/dist/
+**/coverage/
+
+# IDE
+.idea/
+.vscode/
+**/*.swp
+**/*.swo
+**/.DS_Store
+
+# Docker
+.docker/
+docker-compose*.yml
+Dockerfile*
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Development/Local files
+*.log
+.env*
+.envs/
+!.envs/.env.example
+
+# Tests
+**/tests/
+**/test/
+**/__tests__/
+**/coverage/
+
+# Build artifacts
+**/build/
+**/dist/
+**/*.egg-info/
+
+staticfiles/
+mediafiles/

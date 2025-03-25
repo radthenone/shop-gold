@@ -1,0 +1,33 @@
+{% load account %}
+{% load i18n %}
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <title>{% trans "Confirm Your Email Address" %}</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .code { font-size: 24px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>{% trans "Confirm Your Email Address" %}</h3>
+        <p>
+            {% blocktrans %}
+            You are receiving this email because
+            {% user_display user %} requested to resend the verification code.
+            {% endblocktrans %}
+        </p>
+        <p>{% trans "Your verification code is:" %}</p>
+        <p class="code">{{ code }}</p>
+        <p>{% trans "Please enter this code in the application to complete the registration process." %}</p>
+        <p>{% trans "Code is available until 15 minutes:" %} {{ sent_at|date:"Y-m-d H:i:s" }}</p>
+        <p>{% trans "If you did not request this email, you can safely ignore it." %}</p>
+        <p>{% trans "Best regards," %}<br>{% trans "Your Application Team" %}</p>
+    </div>
+</body>
+</html>
+{% endautoescape %}
