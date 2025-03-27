@@ -16,10 +16,12 @@
     <div class="container">
         <h3>{% trans "Confirm Your Email Address" %}</h3>
         <p>
+            {% with user_display=user.username %}
             {% blocktrans %}
             You are receiving this email because
-            {% user_display user %} requested to resend the verification code.
+            {{ user_display }} requested to resend the verification code.
             {% endblocktrans %}
+            {% endwith %}
         </p>
         <p>{% trans "Your verification code is:" %}</p>
         <p class="code">{{ code }}</p>

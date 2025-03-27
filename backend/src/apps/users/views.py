@@ -23,7 +23,7 @@ from apps.users.serializers import (
 User = get_user_model()
 
 
-class AccountViewSet(viewsets.ViewSet):
+class AccountViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     @action(
@@ -32,12 +32,13 @@ class AccountViewSet(viewsets.ViewSet):
         description="Register a new user",
         url_path="register",
         url_name="register",
+        serializer_class=RegisterSerializer,
     )
     def register(self, request):
         """
         Register a new user
         """
-        serializer = RegisterSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.save(request)
             return Response(
@@ -50,42 +51,33 @@ class AccountViewSet(viewsets.ViewSet):
         )
 
     @action(
-        methods=["get", "post"],
+        methods=["post"],
         detail=False,
         description="Verify email",
         url_path="verify-email",
         url_name="verify-email",
+        serializer_class=VerifyEmailSerializer,
     )
     def verify_email(self, request):
         """
         Verify email
         """
-        serializer = VerifyEmailSerializer(data=request.data)
+        serializer = self.get_serializer(
+            data=request.data,
+            context={
+                "request": request,
+            },
+        )
         if serializer.is_valid(raise_exception=True):
-            code = serializer.validated_data["code"]
-            if not code:
-                return Response(
-                    {"error": "Code is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            try:
-                email_confirmation = EmailConfirmationHMAC.from_key(code)
-                if not email_confirmation:
-                    return Response(
-                        {"error": "Invalid code"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                adapter = AccountAdapter()
-                adapter.confirm_email(request, email_confirmation.email_address)
-                return Response(
-                    {"detail": "Email verified successfully"},
-                    status=status.HTTP_200_OK,
-                )
-            except Exception as e:
-                return Response(
-                    {"error": str(e)},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            user = serializer.save(request)
+            return Response(
+                {"detail": f"Email verified successfully for {user.email}"},
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     @action(
         detail=False,
@@ -93,32 +85,20 @@ class AccountViewSet(viewsets.ViewSet):
         description="Resend email",
         url_path="resend-email",
         url_name="resend-email",
+        serializer_class=ResendEmailSerializer,
     )
     def resend_email(self, request):
         """
         Resend email
         """
-        serializer = ResendEmailSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data["email"]
-
-        try:
-            email_address = EmailAddress.objects.get(email=email, verified=False)
-
-            adapter = AccountAdapter()
-            adapter.send_confirmation_mail(request, email_address, signup=False)
-
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save(request)
             return Response(
-                {"message": "Verification email resent successfully"},
-                status=status.HTTP_200_OK,
+                {"detail": f"Verification email re-sent to {user.email}"},
+                status=status.HTTP_201_CREATED,
             )
-        except EmailAddress.DoesNotExist:
-            return Response(
-                {"error": "No unverified email found for this address"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to resend email: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )

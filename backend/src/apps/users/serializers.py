@@ -94,12 +94,6 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError("Passwords do not match")
         return data
 
-    def profile_save(self, user):
-        profile = Profile.objects.create(user=user)
-        profile.first_name = self.validated_data.get("first_name", "")
-        profile.last_name = self.validated_data.get("last_name", "")
-        profile.save(update_fields=["first_name", "last_name"])
-
     def get_cleaned_data(self):
         return {
             "username": self.validated_data.get("username", ""),
@@ -109,24 +103,43 @@ class RegisterSerializer(serializers.Serializer):
             "last_name": self.validated_data.get("last_name", ""),
         }
 
-    def save(self, request):
-        adapter = get_adapter()
-        user = adapter.new_user(request)
-        self.cleaned_data = self.get_cleaned_data()
-        user = adapter.save_user(request, user, self)
+    def profile_save(self, user):
+        profile = Profile.objects.create(user=user)
+        profile.first_name = self.validated_data.get("first_name", "")
+        profile.last_name = self.validated_data.get("last_name", "")
+        profile.save(update_fields=["first_name", "last_name"])
 
+    @staticmethod
+    def email_address_save(user: "User"):
         email_address = EmailAddress.objects.create(
             user=user,
             email=user.email,
             primary=True,
             verified=False,
         )
-        self.profile_save(user)
+        return email_address
 
+    @staticmethod
+    def email_confirmation_save(email_address: "EmailAddress"):
         confirmation = EmailConfirmation.create(email_address)
         confirmation.sent = timezone.now()
         confirmation.save()
-        adapter.send_confirmation_mail(request, confirmation, signup=True)
+        return confirmation
+
+    def save(self, request):
+        adapter = get_adapter()
+        user = adapter.new_user(request)
+        self.cleaned_data = self.get_cleaned_data()
+        user = adapter.save_user(request, user, self)
+
+        self.profile_save(user)
+        email_address = self.email_address_save(user)
+        confirmation = self.email_confirmation_save(email_address)
+        adapter.send_confirmation_mail(
+            request,
+            confirmation,
+            signup=True,
+        )
 
         return user
 
@@ -134,9 +147,61 @@ class RegisterSerializer(serializers.Serializer):
 class VerifyEmailSerializer(serializers.Serializer):
     code = serializers.CharField(write_only=True)
 
+    @staticmethod
+    def validate_code(code):
+        try:
+            EmailConfirmation.objects.get(key=code)
+        except EmailConfirmation.DoesNotExist as error:
+            raise serializers.ValidationError("Invalid code") from error
+        return code
+
+    def save(self, request):
+        code = self.validated_data["code"]
+        email_confirmation = EmailConfirmation.objects.get(key=code)
+        email_confirmation.confirm(request)
+        return email_confirmation.email_address.user
+
 
 class ResendEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+    def validate_email(self, email):
+        try:
+            self.email_address_get(email, verified=False)
+        except EmailAddress.DoesNotExist as error:
+            raise serializers.ValidationError(
+                "Email address is already verified or does not exist."
+            ) from error
+        return email
+
+    @staticmethod
+    def email_address_get(email: str, verified: bool = False) -> "EmailAddress":
+        email_address = EmailAddress.objects.get(
+            email=email,
+            verified=verified,
+        )
+        return email_address
+
+    @staticmethod
+    def email_confirmation_update(email_address: "EmailAddress") -> "EmailConfirmation":
+        confirmation = EmailConfirmation.objects.get(email_address=email_address)
+        confirmation.sent = timezone.now()
+        adapter = get_adapter()
+        confirmation.key = adapter.generate_emailconfirmation_key(email_address.email)
+        confirmation.save(update_fields=["sent", "key"])
+        return confirmation
+
+    def save(self, request):
+        email = self.validated_data["email"]
+        email_address = self.email_address_get(email, verified=False)
+        adapter = get_adapter()
+        confirmation = self.email_confirmation_update(email_address)
+        adapter.send_confirmation_mail(
+            request,
+            confirmation,
+            signup=False,
+        )
+        return email_address.user
 
 
 class LoginSerializer(DefaultLoginSerializer):

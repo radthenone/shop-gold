@@ -39,18 +39,6 @@ class AccountAdapter(DefaultAccountAdapter):
         msg.attach_alternative(html_body, "text/html")
         return msg
 
-    def send_confirmation_mail(self, request, emailconfirmation, signup):
-        ctx = {
-            "user": emailconfirmation.email_address.user,
-            "code": emailconfirmation.key,
-            "current_site": get_current_site(request),
-            "sent_at": timezone.now(),
-            "request": request,
-        }
-
-        template_prefix = "account/email/email_confirmation_signup"
-        self.send_mail(template_prefix, emailconfirmation.email_address.email, ctx)
-
     def send_mail(self, template_prefix: str, email: str, context: dict) -> None:
         logging.info(
             "send_mail called with template: %s, email: %s", template_prefix, email

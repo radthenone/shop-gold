@@ -1,0 +1,11 @@
+meta {
+  name: Resend email
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BackendUrl}}/api/v1/users/resend-email/
+  body: none
+  auth: inherit
+}
