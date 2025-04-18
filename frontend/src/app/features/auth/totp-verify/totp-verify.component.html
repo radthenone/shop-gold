@@ -1,0 +1,24 @@
+<div class="totp-verify-container">
+    <h2>Weryfikacja dwuskładnikowa</h2>
+    <p>Podaj 6-cyfrowy kod z aplikacji uwierzytelniającej</p>
+
+    <form [formGroup]="verifyForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <input type="text" formControlName="code" placeholder="Kod weryfikacyjny" maxlength="6" pattern="[0-9]*"
+                inputmode="numeric" autocomplete="one-time-code" />
+            <div *ngIf="verifyForm.get('code')?.touched && verifyForm.get('code')?.invalid" class="error-message">
+                <span *ngIf="verifyForm.get('code')?.errors?.['required']">Kod jest wymagany</span>
+                <span *ngIf="verifyForm.get('code')?.errors?.['pattern']">Kod musi składać się z 6 cyfr</span>
+            </div>
+        </div>
+
+        <div *ngIf="error" class="error-message">
+            {{ error }}
+        </div>
+
+        <button type="submit" [disabled]="!verifyForm.valid || isLoading">
+            <span *ngIf="!isLoading">Weryfikuj</span>
+            <span *ngIf="isLoading">Weryfikacja...</span>
+        </button>
+    </form>
+</div>

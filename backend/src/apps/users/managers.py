@@ -22,7 +22,11 @@ class UserManager(BaseUserManager):
 
     @transaction.atomic
     def _create_user(
-        self, email: str, username: str, password: str, **extra_fields
+        self,
+        email: str,
+        username: str,
+        password: str,
+        **extra_fields,
     ) -> "User":
         if not email:
             raise ValueError("User must have an email address")

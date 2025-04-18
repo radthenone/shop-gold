@@ -1,0 +1,29 @@
+<div class="recovery-code-container">
+    <h2>Weryfikacja kodem odzyskiwania</h2>
+
+    <div *ngIf="error" class="error">
+        {{ error }}
+    </div>
+
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <span>Weryfikacja kodu...</span>
+    </div>
+
+    <div class="recovery-form">
+        <p>Wprowadź jeden z kodów odzyskiwania, który został wygenerowany podczas konfiguracji 2FA:</p>
+        <div class="code-input">
+            <input type="text" [(ngModel)]="recoveryCode" placeholder="Kod odzyskiwania" autocomplete="off">
+        </div>
+
+        <div class="actions">
+            <button (click)="verifyRecoveryCode()" [disabled]="!recoveryCode">
+                Weryfikuj
+            </button>
+
+            <button class="secondary" (click)="backToTOTP()">
+                Wróć do weryfikacji 2FA
+            </button>
+        </div>
+    </div>
+</div>

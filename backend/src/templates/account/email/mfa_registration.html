@@ -1,0 +1,58 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% trans "Complete Your Registration" %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{% trans "Complete Your Registration" %}</h2>
+        <p>{% trans "Hello" %} {{ user.username }},</p>
+        <p>{% trans "Thank you for registering with Shop Gold. To complete your registration, please use the following verification code:" %}</p>
+        
+        <div class="code">{{ code }}</div>
+        
+        <p>{% trans "This code will expire in 10 minutes." %}</p>
+        <p>{% trans "If you did not register for an account, please ignore this email." %}</p>
+        
+        <p>{% trans "Thank you," %}<br>
+        {% trans "The Shop Gold Team" %}</p>
+        
+        <div class="footer">
+            <p>{% trans "This email was sent to" %} {{ email }}. {% trans "If you have questions or concerns, please contact our support team." %}</p>
+        </div>
+    </div>
+</body>
+</html>

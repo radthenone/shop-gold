@@ -1,11 +1,6 @@
-import io
-import mimetypes
-import os
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.files.base import ContentFile
-from PIL import Image
 from storages.backends.s3boto3 import S3Boto3Storage
 
 

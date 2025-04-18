@@ -37,7 +37,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = []
 
     class Meta:
         db_table = "users"
@@ -48,6 +48,16 @@ class User(AbstractBaseUser):
             models.Index(fields=["email"]),
             models.Index(fields=["username"]),
         ]
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+    @property
+    def is_staff(self):
+        return self.is_superuser
 
     def __str__(self):
         return f"User #{self.id}"
@@ -61,6 +71,8 @@ class Profile(TimestampMixin, models.Model):
     )
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    phone_verified = models.BooleanField(default=False)
     avatar = models.OneToOneField(
         "files.ProfileImage",
         on_delete=models.SET_NULL,

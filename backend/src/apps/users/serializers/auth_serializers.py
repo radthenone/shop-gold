@@ -1,58 +1,16 @@
-from allauth.account.adapter import get_adapter
+from datetime import timedelta
+
 from allauth.account.models import EmailConfirmation
-from allauth.account.utils import setup_user_email
-from allauth.mfa.models import Authenticator
 from allauth.socialaccount.models import EmailAddress
 from allauth.utils import get_username_max_length
-from dj_rest_auth.registration.serializers import (
-    RegisterSerializer as DefaultRegisterSerializer,
-)
-from dj_rest_auth.serializers import LoginSerializer as DefaultLoginSerializer
-from django.contrib.auth import authenticate
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.users.adapters import AccountAdapter
 from apps.users.models import Profile, User
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    avatar_url = serializers.CharField(source="get_avatar_url", read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = (
-            "first_name",
-            "last_name",
-            "avatar",
-            "avatar_url",
-        )
-
-
-class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
-    full_name = serializers.CharField(source="get_full_name", read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-            "username",
-            "profile",
-            "full_name",
-            "role",
-            "date_joined",
-        )
-        read_only_fields = (
-            "id",
-            "email",
-            "date_joined",
-            "role",
-        )
+from apps.users.tasks import check_email_confirmation
+from core.adapters import get_adapter
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -97,7 +55,7 @@ class RegisterSerializer(serializers.Serializer):
     def get_cleaned_data(self):
         return {
             "username": self.validated_data.get("username", ""),
-            "password1": self.validated_data.get("password1", ""),
+            "password1": self.validated_data.get("password", ""),
             "email": self.validated_data.get("email", ""),
             "first_name": self.validated_data.get("first_name", ""),
             "last_name": self.validated_data.get("last_name", ""),
@@ -107,7 +65,7 @@ class RegisterSerializer(serializers.Serializer):
         profile = Profile.objects.create(user=user)
         profile.first_name = self.validated_data.get("first_name", "")
         profile.last_name = self.validated_data.get("last_name", "")
-        profile.save(update_fields=["first_name", "last_name"])
+        profile.save(update_fields=["first_name", "last_name", "phone"])
 
     @staticmethod
     def email_address_save(user: "User"):
@@ -130,6 +88,7 @@ class RegisterSerializer(serializers.Serializer):
         adapter = get_adapter()
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
+
         user = adapter.save_user(request, user, self)
 
         self.profile_save(user)
@@ -141,25 +100,38 @@ class RegisterSerializer(serializers.Serializer):
             signup=True,
         )
 
+        check_email_confirmation.apply_async(
+            args=[email_address.id], expires=timezone.now() + timedelta(minutes=15)
+        )
+
         return user
 
 
 class VerifyEmailSerializer(serializers.Serializer):
-    code = serializers.CharField(write_only=True)
+    key = serializers.CharField(write_only=True)
 
-    @staticmethod
-    def validate_code(code):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email_confirmation = None
+
+    def validate_key(self, key):
         try:
-            EmailConfirmation.objects.get(key=code)
+            self.email_confirmation = EmailConfirmation.objects.get(key=key)
         except EmailConfirmation.DoesNotExist as error:
-            raise serializers.ValidationError("Invalid code") from error
-        return code
+            raise serializers.ValidationError("Invalid key") from error
+        return key
 
     def save(self, request):
-        code = self.validated_data["code"]
-        email_confirmation = EmailConfirmation.objects.get(key=code)
-        email_confirmation.confirm(request)
-        return email_confirmation.email_address.user
+        try:
+            self.email_confirmation.confirm(request)
+            user = self.email_confirmation.email_address.user
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            return user
+        except Exception as error:
+            raise serializers.ValidationError(
+                f"Error confirming email: {error!s}"
+            ) from error
 
 
 class ResendEmailSerializer(serializers.Serializer):
@@ -184,11 +156,18 @@ class ResendEmailSerializer(serializers.Serializer):
 
     @staticmethod
     def email_confirmation_update(email_address: "EmailAddress") -> "EmailConfirmation":
-        confirmation = EmailConfirmation.objects.get(email_address=email_address)
-        confirmation.sent = timezone.now()
         adapter = get_adapter()
+        try:
+            confirmation = EmailConfirmation.objects.get(email_address=email_address)
+            update_fields = ["sent", "key"]
+        except EmailConfirmation.DoesNotExist:
+            confirmation = EmailConfirmation.create(email_address)
+            update_fields = None
+
+        confirmation.sent = timezone.now()
         confirmation.key = adapter.generate_emailconfirmation_key(email_address.email)
-        confirmation.save(update_fields=["sent", "key"])
+        confirmation.save(update_fields=update_fields)
+
         return confirmation
 
     def save(self, request):
@@ -201,39 +180,16 @@ class ResendEmailSerializer(serializers.Serializer):
             confirmation,
             signup=False,
         )
+        check_email_confirmation.apply_async(
+            args=[email_address.id], expires=timezone.now() + timedelta(minutes=15)
+        )
+
         return email_address.user
 
 
-class LoginSerializer(DefaultLoginSerializer):
-    username = None
-    email = serializers.EmailField(required=True)
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
-
-        user = authenticate(
-            request=self.context.get("request"),
-            email=email,
-            password=password,
-        )
-
-        if not user:
-            msg = "Unable to log in with provided credentials."
-            raise serializers.ValidationError(msg)
-
-        if not user.is_active:
-            msg = "User account is disabled."
-            raise serializers.ValidationError(msg)
-
-        refresh = RefreshToken.for_user(user)
-
-        attrs["user"] = user
-        attrs["access"] = str(refresh.access_token)
-        attrs["refresh"] = str(refresh)
-
-        return attrs
 
 
 class RefreshTokenSerializer(serializers.Serializer):
@@ -249,3 +205,9 @@ class RefreshTokenSerializer(serializers.Serializer):
         attrs["refresh"] = str(refresh)
 
         return attrs
+
+    def to_representation(self, instance):
+        return {
+            "access": instance["access"],
+            "refresh": instance["refresh"],
+        }

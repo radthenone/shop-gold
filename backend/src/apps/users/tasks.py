@@ -1,5 +1,6 @@
 import logging
 
+from allauth.account.models import EmailAddress
 from celery import shared_task
 from django.core.mail import send_mail
 
@@ -17,4 +18,18 @@ def send_email_task(subject, message, from_email, recipient_list, html_message=N
         )
         logging.info("Email sent successfully")
     except Exception as error:
-        logging.error("Failed to send email: $s", str(error))
+        logging.error("Failed to send email: %s", str(error))
+
+
+@shared_task
+def check_email_confirmation(email_address_id: int):
+    try:
+        email_address = EmailAddress.objects.select_related("user").get(
+            id=email_address_id
+        )
+        if not email_address.verified:
+            email_address.emailconfirmation_set.prefetch_related(
+                "email_address"
+            ).all().delete()
+    except EmailAddress.DoesNotExist:
+        pass

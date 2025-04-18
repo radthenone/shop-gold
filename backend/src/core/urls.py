@@ -15,8 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -27,6 +25,12 @@ from drf_spectacular.views import (
 from apps.users.urls import router as user_router
 
 urlpatterns = [
+    # API V1 URLs
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/v1/users/", include(user_router.urls)),
+    # path("api/v1/auth/", include("dj_rest_auth.urls")),
+    # path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
+    # path("api/v1/notifications/", include("apps.notifications.urls")),
     # API Documentation
     path(
         "api/schema/",
@@ -34,7 +38,7 @@ urlpatterns = [
         name="schema",
     ),
     path(
-        "api/schema/swagger/",
+        "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
@@ -43,11 +47,6 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-    # API V1 URLs
-    path("api-auth/", include("rest_framework.urls")),
-    path("api/v1/", include(user_router.urls)),
-    path("api/v1/auth/", include("dj_rest_auth.urls")),
-    path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
 ]
 
 # if settings.DEBUG:

@@ -1,23 +1,20 @@
 import logging
-import uuid
-from datetime import timedelta
 
 from allauth.account.adapter import DefaultAccountAdapter
-from allauth.account.models import EmailAddress
-from allauth.headless.tokens.base import AbstractTokenStrategy
-from django.contrib import messages
+from allauth.mfa.adapter import get_adapter as mfa_adapter
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.utils import timezone
-from rest_framework.authtoken.models import Token
-from rest_framework.reverse import reverse
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.urls import reverse_lazy
 
 from apps.users.tasks import send_email_task
 
 
 class AccountAdapter(DefaultAccountAdapter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def render_mail(self, template_prefix, email, context, headers=None):
         to = [email] if isinstance(email, str) else email
         subject = render_to_string(f"{template_prefix}_subject.txt", context)
@@ -71,10 +68,14 @@ class AccountAdapter(DefaultAccountAdapter):
             "send_confirmation_mail called for user: %s",
             emailconfirmation.email_address.user,
         )
+        verify_url = reverse_lazy("user-verify-email", args=[emailconfirmation.key])
+        url = settings.FRONTEND_URL + verify_url
         ctx = {
             "user": emailconfirmation.email_address.user,
             "code": emailconfirmation.key,
             "current_site": get_current_site(request),
+            "url": url,
+            "qr_code": mfa_adapter().build_totp_svg(url=url),
             "sent_at": emailconfirmation.sent,
             "request": request,
         }

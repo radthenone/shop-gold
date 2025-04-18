@@ -30,7 +30,13 @@ def main():
 
 
 if __name__ == "__main__":
+    import warnings
+
     DJANGO_LOCAL = os.environ.get("DJANGO_LOCAL", "1") == "1"
     if DJANGO_LOCAL:
         load_local_env()
+
+    warnings.filterwarnings(
+        "ignore", category=UserWarning, module="allauth.account.app_settings"
+    )
     main()

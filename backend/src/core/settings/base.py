@@ -5,12 +5,18 @@ from core.paths import SRC_DIR
 
 DJANGO_LOCAL = os.environ.get("DJANGO_LOCAL", "1") == "1"
 
+# Frontend integration
+FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "localhost")
+FRONTEND_PORT = os.environ.get("FRONTEND_PORT", "8080")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", f"http://{FRONTEND_HOST}:{FRONTEND_PORT}")
+
 # Core Django Settings
 SECRET_KEY = str(os.environ.get("DJANGO_SECRET_KEY", "secret_key"))
-DEBUG = bool(os.environ.get("DJANGO_DEBUG", 1))
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = list(
     str(os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")).split(",")
 )
+ALLOWED_HOSTS += list(os.environ.get("ALLOWED_HOSTS", "").split(","))
 
 # Application definition
 DJANGO_APPS = [
@@ -31,11 +37,12 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "allauth",
-    "allauth.account",
+    # "allauth.account",
     "allauth.socialaccount",
     "allauth.mfa",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "channels",
 ]
 
 LOCAL_APPS = [
@@ -45,20 +52,23 @@ LOCAL_APPS = [
     "apps.shop",
     "apps.delivery",
     "apps.files",
+    "apps.notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    "kolo.middleware.KoloMiddleware",
+    # "allauth.account.middleware.AccountMiddleware",
+    "core.middleware.TOTPMiddleware",
 ]
 
 # Basic Django config
@@ -66,6 +76,7 @@ ROOT_URLCONF = "core.urls"
 AUTH_USER_MODEL = "users.User"
 SITE_ID = 1
 WSGI_APPLICATION = "core.wsgi.application"
+ASGI_APPLICATION = "core.asgi.application"
 
 TEMPLATES = [
     {
@@ -91,7 +102,7 @@ DATABASES = {
         "USER": os.environ.get("POSTGRES_USER", "postgres"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
         "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", 5433),
+        "PORT": int(os.environ.get("POSTGRES_PORT", "5433")),
     }
 }
 
@@ -117,25 +128,30 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 USE_TZ = True
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # Email configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 1025))
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "1025"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = bool(int(os.environ.get("EMAIL_USE_TLS", 0)))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "0") == "1"
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
 # Django AllAuth settings
-ACCOUNT_ADAPTER = "apps.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "core.adapters.AccountAdapter"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_LOGIN_METHODS = {"email"}
@@ -150,47 +166,44 @@ ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 
-
-# MFA_FORMS = {
-#     "authenticate": "allauth.mfa.base.forms.AuthenticateForm",
-#     "reauthenticate": "allauth.mfa.base.forms.AuthenticateForm",
-#     "activate_totp": "allauth.mfa.totp.forms.ActivateTOTPForm",
-#     "deactivate_totp": "allauth.mfa.totp.forms.DeactivateTOTPForm",
-#     "generate_recovery_codes": "allauth.mfa.recovery_codes.forms.GenerateRecoveryCodesForm",
-# }
-# MFA_ADAPTER = "apps.users.adapters.MfaAdapter"
-# MFA_ENABLED = True
-# MFA_REQUIRED = True
-# MFA_METHODS = ["totp", "email", "phone", "webauthn", "recovery_codes"]
-#
-# MFA_PASSKEY_SIGNUP_ENABLED = True
-# MFA_SUPPORTED_TYPES = ["totp", "email", "phone", "webauthn", "recovery_codes"]
-# MFA_PASSKEY_LOGIN_ENABLED = True
-# MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = True
+# Django AllAuth mfa settings
+MFA_ADAPTER = "core.adapters.MFAAdapter"
+TOTP_DIGITS = 6
+TOTP_PERIOD = 30
+TOTP_ISSUER = "Your App Name"
+MFA_METHODS = {
+    "totp": {
+        "name": "TOTP (Time-based One-Time Password)",
+        "validator": "allauth.mfa.totp.validator.TOTPValidator",
+    },
+    "recovery": {
+        "name": "Recovery Codes",
+        "validator": "allauth.mfa.recovery.validator.RecoveryCodeValidator",
+    },
+}
 
 # REST Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # JWT Settings
-REST_AUTH = {
-    "USER_DETAILS_SERIALIZER": "apps.users.serializers.UserSerializer",
-    "PASSWORD_RESET_SERIALIZER": "dj_rest_auth.serializers.PasswordResetSerializer",
-    "PASSWORD_RESET_CONFIRM_SERIALIZER": "dj_rest_auth.serializers.PasswordResetConfirmSerializer",
-    "PASSWORD_CHANGE_SERIALIZER": "dj_rest_auth.serializers.PasswordChangeSerializer",
-    "TOKEN_MODEL": None,
-    "USE_JWT": True,
-}
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS512",
 }
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+]
+CORS_ALLOW_CREDENTIALS = True

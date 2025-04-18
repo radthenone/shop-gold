@@ -1,0 +1,93 @@
+<div class="register-container">
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <h2>Rejestracja</h2>
+
+    <div class="form-group">
+      <label for="username">Nazwa użytkownika</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        placeholder="Nazwa użytkownika"
+        [ngClass]="{'is-invalid': registerForm.get('username')?.invalid && registerForm.get('username')?.touched}">
+      <div *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="validation-error">
+        <span *ngIf="registerForm.get('username')?.errors?.['required']">Nazwa użytkownika jest wymagana</span>
+        <span *ngIf="registerForm.get('username')?.errors?.['minlength']">Nazwa użytkownika musi mieć co najmniej 5 znaków</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="Email"
+        [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}">
+      <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="validation-error">
+        <span *ngIf="registerForm.get('email')?.errors?.['required']">Email jest wymagany</span>
+        <span *ngIf="registerForm.get('email')?.errors?.['email']">Podaj prawidłowy adres email</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Hasło</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        placeholder="Hasło"
+        [ngClass]="{'is-invalid': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}">
+      <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="validation-error">
+        <span *ngIf="registerForm.get('password')?.errors?.['required']">Hasło jest wymagane</span>
+        <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Hasło musi mieć co najmniej 8 znaków</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="rewrite_password">Powtórz hasło</label>
+      <input
+        id="rewrite_password"
+        type="password"
+        formControlName="rewrite_password"
+        placeholder="Powtórz hasło"
+        [ngClass]="{'is-invalid': (registerForm.get('rewrite_password')?.invalid || registerForm.hasError('passwordMismatch')) && registerForm.get('rewrite_password')?.touched}">
+      <div *ngIf="registerForm.get('rewrite_password')?.invalid && registerForm.get('rewrite_password')?.touched" class="validation-error">
+        <span *ngIf="registerForm.get('rewrite_password')?.errors?.['required']">Powtórzenie hasła jest wymagane</span>
+      </div>
+      <div *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('rewrite_password')?.touched" class="validation-error">
+        <span>Hasła nie są identyczne</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="first_name">Imię (opcjonalne)</label>
+      <input
+        id="first_name"
+        type="text"
+        formControlName="first_name"
+        placeholder="Imię">
+    </div>
+
+    <div class="form-group">
+      <label for="last_name">Nazwisko (opcjonalne)</label>
+      <input
+        id="last_name"
+        type="text"
+        formControlName="last_name"
+        placeholder="Nazwisko">
+    </div>
+
+    <div class="error" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <button type="submit" [disabled]="!registerForm.valid">
+      Zarejestruj
+    </button>
+
+    <div class="links">
+      <a routerLink="/auth/login">Masz już konto? Zaloguj się</a>
+    </div>
+  </form>
+</div>

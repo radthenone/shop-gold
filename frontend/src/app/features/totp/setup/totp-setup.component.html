@@ -1,0 +1,60 @@
+<div class="totp-container">
+  <h2>Konfiguracja uwierzytelniania dwuskładnikowego (2FA)</h2>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <span>Trwa ładowanie...</span>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <div *ngIf="!isEnabled" class="totp-setup">
+      <div *ngIf="!qrCode" class="setup-intro">
+        <p>Uwierzytelnianie dwuskładnikowe (2FA) zwiększa bezpieczeństwo Twojego konta, wymagając dodatkowego kodu podczas logowania.</p>
+        <p>Aby skonfigurować 2FA, potrzebujesz aplikacji takiej jak Google Authenticator, Microsoft Authenticator lub Authy na swoim urządzeniu mobilnym.</p>
+        <button (click)="setupTOTP()" class="primary-button">Skonfiguruj 2FA</button>
+      </div>
+
+      <div *ngIf="qrCode" class="qr-setup">
+        <h3>Zeskanuj kod QR</h3>
+        <p>Użyj aplikacji uwierzytelniającej, aby zeskanować poniższy kod QR:</p>
+
+        <div class="qr-code" [innerHTML]="qrCode"></div>
+
+        <div class="verification-form">
+          <h3>Weryfikacja</h3>
+          <p>Wprowadź kod z aplikacji uwierzytelniającej:</p>
+          <div class="code-input">
+            <input
+              type="text"
+              [(ngModel)]="verificationCode"
+              placeholder="Kod weryfikacyjny"
+              maxlength="6"
+              pattern="([0-9]{6})*"
+              inputmode="numeric">
+            <button (click)="activateTOTP()" [disabled]="!verificationCode || verificationCode.length !== 6">Aktywuj 2FA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isEnabled" class="totp-active">
+      <div class="success-icon">✅</div>
+      <h3>Uwierzytelnianie dwuskładnikowe jest aktywne</h3>
+      <p>Twoje konto jest teraz lepiej zabezpieczone. Przy każdym logowaniu będziesz proszony o podanie kodu z aplikacji uwierzytelniającej.</p>
+
+      <div *ngIf="recoveryCodes && recoveryCodes.length > 0" class="recovery-codes">
+        <h3>Kody odzyskiwania</h3>
+        <p>Zapisz te kody w bezpiecznym miejscu. Możesz ich użyć, jeśli utracisz dostęp do swojej aplikacji uwierzytelniającej.</p>
+        <div class="codes-list">
+          <div *ngFor="let code of recoveryCodes" class="recovery-code">{{ code }}</div>
+        </div>
+      </div>
+
+      <button (click)="deactivateTOTP()" class="danger-button">Dezaktywuj 2FA</button>
+    </div>
+  </div>
+</div>

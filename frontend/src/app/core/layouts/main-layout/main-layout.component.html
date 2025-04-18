@@ -1,0 +1,29 @@
+<header class="main-header">
+  <div class="container">
+    <div class="logo">
+      <a routerLink="/">Shop Gold</a>
+    </div>
+    <nav class="main-nav">
+      <ul>
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+        <li *ngIf="authService.currentUser$ | async"><a routerLink="/profile" routerLinkActive="active">Profile</a></li>
+        <li *ngIf="authService.currentUser$ | async"><a routerLink="/totp" routerLinkActive="active">2FA Setup</a></li>
+        <li *ngIf="!(authService.currentUser$ | async)"><a routerLink="/auth/login" routerLinkActive="active">Login</a></li>
+        <li *ngIf="!(authService.currentUser$ | async)"><a routerLink="/auth/register" routerLinkActive="active">Register</a></li>
+        <li *ngIf="authService.currentUser$ | async"><a href="javascript:void(0)" (click)="logout()">Logout</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="container">
+    <router-outlet></router-outlet>
+  </div>
+</main>
+
+<footer class="main-footer">
+  <div class="container">
+    <p>&copy; 2023 Shop Gold. All rights reserved.</p>
+  </div>
+</footer>
