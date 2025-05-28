@@ -1,7 +1,8 @@
 .env
-.idea
-.ruff_cache
-.vscode
+.idea/
+.ruff_cache/
+.vscode/
 shop-gold.code-workspace
 __pycache__/
 django_init.py
+.github/
