@@ -1,14 +1,18 @@
 import logging
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.utils import user_email, user_username
 from allauth.mfa.adapter import get_adapter as mfa_adapter
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse
+from django.utils.crypto import get_random_string
 
-from apps.users.tasks import send_email_task
+from apps.auth.tasks import send_email_task
+
+logger = logging.getLogger(__name__)
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -20,7 +24,6 @@ class AccountAdapter(DefaultAccountAdapter):
         subject = render_to_string(f"{template_prefix}_subject.txt", context)
         subject = " ".join(subject.splitlines()).strip()
         subject = self.format_email_subject(subject)
-
         from_email = self.get_from_email()
 
         template_name = f"{template_prefix}.html"
@@ -63,13 +66,26 @@ class AccountAdapter(DefaultAccountAdapter):
         )
         logging.info("Email task created: %s", task.id)
 
+    def generate_emailconfirmation_key(self, email):
+        key = get_random_string(64).lower()
+        return key
+
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         logging.info(
             "send_confirmation_mail called for user: %s",
             emailconfirmation.email_address.user,
         )
-        verify_url = reverse_lazy("user-verify-email", args=[emailconfirmation.key])
-        url = settings.FRONTEND_URL + verify_url
+        verify_url = reverse("auth-verify-email", kwargs={"key": emailconfirmation.key})
+        new_url = (
+            str("/" + "/".join(verify_url.split("/")[4:]))
+            .replace("verify_email", "verify-email")
+            .rstrip("/")
+        )
+
+        url = settings.FRONTEND_URL + new_url
+
+        logger.info("Verification URL: %s", url)
+
         ctx = {
             "user": emailconfirmation.email_address.user,
             "code": emailconfirmation.key,
@@ -84,3 +100,17 @@ class AccountAdapter(DefaultAccountAdapter):
         else:
             email_template = "account/email/email_confirmation"
         self.send_mail(email_template, emailconfirmation.email_address.email, ctx)
+
+    def save_user(self, request, user, data: dict, commit=True):
+        email = data.get("email")
+        username = data.get("username")
+        user_email(user, email)
+        user_username(user, username)
+        if "password1" in data:
+            user.set_password(data["password1"])
+        else:
+            user.set_unusable_password()
+        self.populate_username(request, user)
+        if commit:
+            user.save()
+        return user

@@ -1,62 +1,100 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { BehaviorSubject, catchError, filter, finalize, Observable, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { UrlConfigService } from '../services/url-config.service';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false;
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
-  constructor(private authService: AuthService) {}
+const exceptionsPaths = [
+  '/auth/register/',
+  '/auth/totp/setup/',
+  '/auth/totp/activate/',
+  '/auth/totp/verify/',
+  '/auth/totp/verify-recovery-code/',
+  '/auth/check-email/',
+];
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('access_token');
+export const authInterceptor: HttpInterceptorFn = (
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
+  const urlConfigService = inject(UrlConfigService);
+  const authService = inject(AuthService);
+  const token = authService.getAuthToken();
+  const apiUrl = urlConfigService.getApiUrl();
 
-    if (token) {
-      request = this.addToken(request, token);
+  let requestPath = request.url;
+  if (request.url.startsWith(apiUrl)) {
+    requestPath = request.url.slice(apiUrl.length);
+  }
+
+  if (token) {
+    let shouldAddToken = true;
+    for (const path of exceptionsPaths) {
+      if (requestPath.includes(path)) {
+        shouldAddToken = false;
+        break;
+      }
     }
 
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 && !this.isRefreshing) {
-          return this.handle401Error(request, next);
+    if (shouldAddToken) {
+      request = addJwtToken(request, token);
+    }
+  }
+
+  return next(request).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        const shouldAttemptRefresh = !exceptionsPaths.some((path) => requestPath.includes(path));
+
+        if (shouldAttemptRefresh) {
+          return handle401Error(request, next, authService);
         }
-        return throwError(() => error);
+      }
+
+      return throwError(() => error);
+    })
+  );
+};
+
+function addJwtToken(request: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
+  return request.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, authService: AuthService) {
+  if (!isRefreshing) {
+    isRefreshing = true;
+    refreshTokenSubject.next(null);
+
+    return authService.refreshToken().pipe(
+      switchMap((response) => {
+        isRefreshing = false;
+        refreshTokenSubject.next(response.access);
+        return next(addJwtToken(request, response.access));
+      }),
+      catchError((refreshError) => {
+        isRefreshing = false;
+        refreshTokenSubject.next(null);
+        authService.logout();
+        return throwError(() => refreshError);
+      }),
+      finalize(() => {
+        isRefreshing = false;
       })
     );
-  }
-
-  private addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-
-  private handle401Error(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!this.isRefreshing) {
-      this.isRefreshing = true;
-
-      return this.authService.refreshToken().pipe(
-        switchMap((response) => {
-          this.isRefreshing = false;
-          return next.handle(this.addToken(request, response.access));
-        }),
-        catchError((error) => {
-          this.isRefreshing = false;
-          this.authService.logout();
-          return throwError(() => error);
-        })
-      );
-    }
-    return next.handle(request);
+  } else {
+    return refreshTokenSubject.pipe(
+      filter((token) => token !== null),
+      take(1),
+      switchMap((token) => {
+        return next(addJwtToken(request, token as string));
+      })
+    );
   }
 }

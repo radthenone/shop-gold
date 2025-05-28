@@ -1,14 +1,3 @@
-<div class="home-container">
-  <h1>Welcome to Shop Gold</h1>
-
-  <div class="user-info" *ngIf="authService.currentUser$ | async as user">
-    <h2>User Information</h2>
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Role:</strong> {{ user.role }}</p>
-  </div>
-
-  <div class="actions">
-    <a routerLink="/totp" class="btn">Configure 2FA</a>
-  </div>
-</div>
+<p>HOME COMPONENT</p>
+<p *ngIf="verifyMessage">{{ verifyMessage }}</p>
+<p *ngIf="errorVerifyMessage">{{ errorVerifyMessage }}</p>

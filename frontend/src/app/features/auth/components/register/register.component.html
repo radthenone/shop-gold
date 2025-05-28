@@ -1,0 +1,145 @@
+<h2>REGISTER</h2>
+
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+  <!-- username label -->
+
+  <div class="mb-3">
+    <label for="username" class="form-label"> Username </label>
+    <input
+      id="username"
+      type="text"
+      formControlName="username"
+      class="form-control"
+      placeholder="Username"
+      autocomplete="username"
+      name="username"
+      [ngClass]="{ 'is-invalid': submitted && field['username'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('username')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('username')">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- email label -->
+  <div class="mb-3">
+    <label for="email" class="form-label"> Email </label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      class="form-control"
+      placeholder="default@email.com"
+      autocomplete="email"
+      name="email"
+      [ngClass]="{ 'is-invalid': submitted && field['email'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('email')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('email')">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- password label -->
+  <div class="mb-3">
+    <label for="password" class="form-label"> Password: </label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      formControlName="password"
+      class="form-control"
+      placeholder="Your password"
+      autocomplete="new-password"
+      [ngClass]="{ 'is-invalid': submitted && field['password'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('password')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('password')">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- confirm password label -->
+  <div class="mb-3">
+    <label for="password_confirm" class="form-label"> Confirm Password: </label>
+    <input
+      id="password_confirm"
+      name="password_confirm"
+      type="password"
+      formControlName="password_confirm"
+      class="form-control"
+      placeholder="Confirm password"
+      autocomplete="new-password"
+      [ngClass]="{ 'is-invalid': submitted && field['password_confirm'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('password_confirm')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('password_confirm')">{{ error.message }}</div>
+    </div>
+    <div *ngIf="submitted && getFormError('passwordsDontMatch')" class="invalid-feedback">
+      {{ getFormError('passwordsDontMatch')?.message || 'Passwords do not match' }}
+    </div>
+  </div>
+
+  <!-- first name label -->
+  <div class="mb-3">
+    <label for="first_name" class="form-label"> First Name: </label>
+    <input
+      id="first_name"
+      type="text"
+      formControlName="first_name"
+      class="form-control"
+      placeholder="John"
+      name="first_name"
+      autocomplete="given-name"
+      [ngClass]="{ 'is-invalid': submitted && field['first_name'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('first_name') as firstNameErrors" class="invalid-feedback">
+      <div *ngFor="let error of firstNameErrors">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- last name label -->
+  <div class="mb-3">
+    <label for="last_name" class="form-label"> Last Name: </label>
+    <input
+      id="last_name"
+      type="text"
+      formControlName="last_name"
+      class="form-control"
+      placeholder="Doe"
+      name="last_name"
+      autocomplete="family-name"
+      [ngClass]="{ 'is-invalid': submitted && field['last_name'].errors }"
+    />
+    <div *ngIf="submitted && getFieldErrors('last_name') as lastNameErrors" class="invalid-feedback">
+      <div *ngFor="let error of lastNameErrors">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- terms and conditions checkbox -->
+  <div class="mb-3 form-check">
+    <input
+      type="checkbox"
+      id="termsAndConditions"
+      name="termsAndConditions"
+      formControlName="termsAndConditions"
+      class="form-check-input"
+      [ngClass]="{ 'is-invalid': submitted && field['termsAndConditions'].errors }"
+    />
+    <label class="form-check-label" for="termsAndConditions">
+      Accept
+      <a [routerLink]="['/terms']">regulations</a>
+      i
+      <a [routerLink]="['/privacy']">privacy policy</a>
+    </label>
+    <div *ngIf="submitted && getFieldErrors('termsAndConditions') as termsAndConditionsErrors" class="invalid-feedback">
+      <div *ngFor="let error of termsAndConditionsErrors">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="submitted && getGlobalError()" class="invalid-feedback">
+    <div *ngFor="let error of getGlobalError()">{{ error.message }}</div>
+  </div>
+
+  <!-- register button -->
+  <div class="form-group">
+    <button type="submit" class="btn btn-primary">Register in</button>
+  </div>
+</form>

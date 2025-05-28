@@ -1,38 +1,17 @@
 {
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "server": "psql01.mikr.us",
-            "port": 5432,
-            "driver": "PostgreSQL",
-            "username": "f141",
-            "database": "db_f141",
-            "password": "MWY3_8ea3",
-            "name": "postgresql_mikrus"
-        },
-        {
-            "mysqlOptions": {
-                "authProtocol": "default"
-            },
-            "previewLimit": 50,
-            "server": "mysql.mikr.us",
-            "port": 3306,
-            "driver": "MySQL",
-            "username": "f141",
-            "database": "db_f141",
-            "password": "MWY3_45ff",
-            "name": "mysql_mikrus"
-        },
-        {
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 5433,
-            "driver": "PostgreSQL",
-            "group": "postgres",
-            "database": "postgres",
-            "username": "postgres",
-            "password": "postgres",
-            "name": "shop-gold"
-        }
-    ]
+  "python.envFile": "${workspaceFolder}/.envs/.env.local",
+  "terminal.integrated.profiles.windows": {
+    "Git Bash": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": [
+        // "-i",
+        "-c",
+        "source \"${workspaceFolder}/.envs/.env.local\" && exec bash"
+      ],
+      "env": {
+        "MSYS2_PATH_TYPE": "inherit",
+      },
+      "icon": "terminal-bash"
+    }
+  }
 }

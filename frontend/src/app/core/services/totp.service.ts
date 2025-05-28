@@ -1,150 +1,122 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { TOTPStatus, TOTPSetup, TOTPResponse } from '../models/totp.model';
+import {
+  TotpActivateRequest,
+  TotpActivateResponse,
+  TotpRecoveryCodeRequest,
+  TotpSetupResponse,
+  TotpStatusResponse,
+  TotpVerifyRequest,
+} from '../models/totp.model';
+import { AuthResponse } from '../models/auth.model';
+import { UrlConfigService } from './url-config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TOTPService {
-  private readonly API_URL = `${environment.apiUrl}/users/totp`;
+  private readonly API_URL = this.urlConfigService.getApiUrl();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private urlConfigService: UrlConfigService
+  ) {}
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
-  }
-
-  getStatus(): Observable<TOTPStatus> {
-    return this.http.get<TOTPStatus>(`${this.API_URL}/status/`, {
-      headers: this.getHeaders(),
-    });
-  }
-
-  setup(): Observable<TOTPSetup> {
-    return this.http.post<TOTPSetup>(
-      `${this.API_URL}/setup/`,
-      {},
-      { headers: this.getHeaders(), withCredentials: true }
-    );
-  }
-
-  activate(code: string): Observable<TOTPResponse> {
+  // Helper private method for code validation
+  private _isValidCodeFormat(code: string): boolean {
     const sanitizedCode = code.trim().replace(/\s/g, '');
+    const regexCode = /^\d{6}$/;
+    return regexCode.test(sanitizedCode);
+  }
 
-    if (!/^\d{6}$/.test(sanitizedCode)) {
-      return throwError(() => new Error('Kod musi składać się z 6 cyfr'));
+  // Helper private method to get sanitized code
+  private _sanitizeCode(code: string): string {
+    return code.trim().replace(/\s/g, '');
+  }
+
+  getStatus(): Observable<TotpStatusResponse> {
+    return this.http.get<TotpStatusResponse>(`${this.API_URL}/auth/totp/status/`);
+  }
+
+  setup(): Observable<TotpSetupResponse> {
+    return this.http.post<TotpSetupResponse>(`${this.API_URL}/auth/totp/setup/`, {});
+  }
+
+  activate({ code: totpCode }: TotpActivateRequest): Observable<TotpActivateResponse> {
+    if (!this._isValidCodeFormat(totpCode)) {
+      return throwError(() => new Error('Code must be 6 digits long'));
     }
+    const sanitizedCode = this._sanitizeCode(totpCode);
 
     return this.http
-      .post<TOTPResponse>(
-        `${this.API_URL}/activate/`,
-        { code: sanitizedCode },
-        { headers: this.getHeaders(), withCredentials: true }
-      )
+      .post<TotpActivateResponse>(`${this.API_URL}/auth/totp/activate/`, {
+        code: sanitizedCode,
+      })
       .pipe(
         catchError((error) => {
           if (error.status === 400) {
-            const message =
-              error.error?.detail || error.error?.error || 'Nieprawidłowy kod';
+            const message = error.error?.detail || error.error?.error || 'Wrong code';
             return throwError(() => new Error(message));
           }
-          return throwError(
-            () => new Error('Wystąpił błąd podczas aktywacji TOTP')
-          );
+          return throwError(() => new Error('Wrong activation code'));
         })
       );
   }
 
-  verify(code: string): Observable<TOTPResponse> {
-    const sanitizedCode = code.trim().replace(/\s/g, '');
-
-    if (!/^\d{6}$/.test(sanitizedCode)) {
-      return throwError(() => new Error('Kod musi składać się z 6 cyfr'));
+  verify({ code }: TotpVerifyRequest): Observable<AuthResponse> {
+    if (!this._isValidCodeFormat(code)) {
+      return throwError(() => new Error('Code must be 6 digits long'));
     }
+    const sanitizedCode = this._sanitizeCode(code);
 
-    // Check if this is MFA during login (no token yet)
-    const isMFALogin = !localStorage.getItem('access_token') &&
-                       sessionStorage.getItem('temp_login_data');
-
-    // For MFA login, don't include Authorization header
-    const options = isMFALogin
-      ? { withCredentials: true }
-      : { headers: this.getHeaders(), withCredentials: true };
-
-    return this.http
-      .post<TOTPResponse>(
-        `${this.API_URL}/verify/`,
-        { code: sanitizedCode },
-        options
-      )
-      .pipe(
-        catchError((error) => {
-          if (error.status === 400) {
-            const message =
-              error.error?.detail || error.error?.error || 'Nieprawidłowy kod';
-            return throwError(() => new Error(message));
-          }
-          return throwError(
-            () => new Error('Wystąpił błąd podczas weryfikacji kodu')
-          );
-        })
-      );
-  }
-
-  verifyRecoveryCode(code: string): Observable<TOTPResponse> {
-    // Check if this is MFA during login (no token yet)
-    const isMFALogin = !localStorage.getItem('access_token') &&
-                       sessionStorage.getItem('temp_login_data');
-
-    // For MFA login, don't include Authorization header
-    const options = isMFALogin
-      ? { withCredentials: true }
-      : { headers: this.getHeaders(), withCredentials: true };
-
-    return this.http.post<TOTPResponse>(
-      `${this.API_URL}/verify-recovery-code/`,
-      { code },
-      options
-    ).pipe(
+    return this.http.post<AuthResponse>(`${this.API_URL}/auth/totp/verify/`, { code: sanitizedCode }).pipe(
       catchError((error) => {
         if (error.status === 400) {
-          const message =
-            error.error?.detail || error.error?.error || 'Nieprawidłowy kod odzyskiwania';
+          const message = error.error?.detail || error.error?.error || 'Wrong code';
           return throwError(() => new Error(message));
         }
-        return throwError(
-          () => new Error('Wystąpił błąd podczas weryfikacji kodu odzyskiwania')
-        );
+        return throwError(() => new Error('Invalid verification code'));
       })
     );
   }
 
+  verifyRecoveryCode({ code }: TotpRecoveryCodeRequest): Observable<AuthResponse> {
+    if (!this._isValidCodeFormat(code)) {
+      return throwError(() => new Error('Code must be 6 digits long'));
+    }
+    const sanitizedCode = this._sanitizeCode(code);
+
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/auth/totp/verify-recovery-code/`, { code: sanitizedCode })
+      .pipe(
+        catchError((error) => {
+          if (error.status === 400) {
+            const message = error.error?.detail || error.error?.error || 'Wrong code';
+            return throwError(() => new Error(message));
+          }
+          return throwError(() => new Error('Invalid recovery code'));
+        })
+      );
+  }
+
   getRecoveryCodes(): Observable<{ recovery_codes: string[] }> {
-    return this.http.get<{ recovery_codes: string[] }>(
-      `${this.API_URL}/recovery-codes/`,
-      { headers: this.getHeaders() }
-    );
+    return this.http.get<{ recovery_codes: string[] }>(`${this.API_URL}/auth/totp/recovery-codes/`);
   }
 
   generateNewRecoveryCodes(): Observable<{ recovery_codes: string[] }> {
-    return this.http.post<{ recovery_codes: string[] }>(
-      `${this.API_URL}/generate-recovery-codes/`,
-      {},
-      { headers: this.getHeaders() }
+    return this.http.post<{ recovery_codes: string[] }>(`${this.API_URL}/auth/totp/generate-recovery-codes/`, {}).pipe(
+      catchError((error) => {
+        if (error.status === 400) {
+          const message = error.error?.detail || error.error?.error || 'Error generating codes';
+          return throwError(() => new Error(message));
+        }
+        return throwError(() => new Error('Failed to generate new recovery codes'));
+      })
     );
   }
 
-  deactivate(): Observable<TOTPResponse> {
-    return this.http.post<TOTPResponse>(
-      `${this.API_URL}/deactivate/`,
-      {},
-      { headers: this.getHeaders() }
-    );
+  deactivate(): Observable<{ status: boolean }> {
+    return this.http.post<{ status: boolean }>(`${this.API_URL}/auth/totp/deactivate/`, {});
   }
 }

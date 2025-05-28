@@ -15,23 +15,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from debug_toolbar.toolbar import debug_toolbar_urls
+from django.conf import settings
+from django.conf.urls.i18n import i18n_patterns
 from django.urls import include, path
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
 
-from apps.users.urls import router as user_router
+from apps.auth.urls import router as auth_router
 
-urlpatterns = [
-    # API V1 URLs
-    path("api-auth/", include("rest_framework.urls")),
-    path("api/v1/users/", include(user_router.urls)),
-    # path("api/v1/auth/", include("dj_rest_auth.urls")),
-    # path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
-    # path("api/v1/notifications/", include("apps.notifications.urls")),
-    # API Documentation
+# from apps.users.urls import router as user_router
+
+urlpatterns_non_i18n = [
     path(
         "api/schema/",
         SpectacularAPIView.as_view(),
@@ -47,8 +46,20 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
+    # path('admin/', admin.site.urls),
 ]
 
-# if settings.DEBUG:
-# urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns_i18n = i18n_patterns(
+    # API V1 URLs
+    path(_("api-auth/"), include("rest_framework.urls")),
+    path(_("api/v1/auth/"), include(auth_router.urls)),
+    # path("api/v1/users/", include(user_router.urls)),
+    # path("api/v1/auth/", include("dj_rest_auth.urls")),
+    # path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
+    # path("api/v1/notifications/", include("apps.notifications.urls")),
+    # prefix_default_language=False # Opcjonalnie
+)
+
+urlpatterns = urlpatterns_non_i18n + urlpatterns_i18n
+if settings.DEBUG:
+    urlpatterns += debug_toolbar_urls()

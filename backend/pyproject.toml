@@ -35,9 +35,13 @@ dependencies = [
   "qrcode>=8.0",
   "redis>=5.2.1",
 ]
+# uv add <package> --optional <dev|test|lint>
+# uv remove <package> --optional <dev|test|lint>
 [project.optional-dependencies]
 dev = [
+  "django-debug-toolbar>=5.2.0",
   "drf-spectacular>=0.28.0",
+  "ipdb>=0.13.13",
   "rich>=13.9.4",
 ]
 lint = [
@@ -91,12 +95,17 @@ unsafe-fixes = true
 
 [tool.ruff.lint]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+extend-select = ["W505"]
 fixable = ["ALL"]
 ignore = [
   "PGH004",
   "PLR2004",
   "RUF012",
   "PLR6301",
+  "E501", # line too long
+  "E722", # do not use bare except
+  "F401", # unused imports
+  "F841", # local variable is assigned to but never used
 ]
 select = [
   "E", # pycodestyle errors
@@ -130,6 +139,7 @@ select = [
 unfixable = []
 
 [tool.ruff.lint.per-file-ignores]
+"**/apps.py" = ["PLC0415"]
 "src/core/settings/dev.py" = ["F403", "F405"]
 
 [tool.ruff.format]
@@ -153,9 +163,12 @@ ignore = ["*"]
 typeCheckingMode = "off"
 
 [dependency-groups]
-dev = [
-    "kolo>=2.40.0",
-]
+dev = []
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 88
+
+[tool.isort]
+combine_as_imports = true
+default_section = 'THIRDPARTY'
+multi_line_output = 3

@@ -1,22 +1,25 @@
-export interface TOTPStatus {
+export interface MfaResponse {
+  mfa_required: boolean;
+}
+
+export interface TotpStatusResponse {
   is_enabled: boolean;
 }
 
-export interface TOTPSetup {
-  qr_code_svg: string;
+export interface TotpSetupResponse {
+  secret: string;
+  qr_code: string;
 }
 
-export interface TOTPResponse {
-  access?: string;
-  refresh?: string;
-  user?: any;
-  status?: string;
-  recovery_codes?: string[];
-  error?: string;
+export interface TotpActivateRequest {
+  code: string;
 }
 
-export interface TOTPVerifyResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+export interface TotpActivateResponse {
+  status: string;
+  recovery_codes: string[];
 }
+
+export interface TotpVerifyRequest extends TotpActivateRequest {}
+
+export interface TotpRecoveryCodeRequest extends TotpActivateRequest {}

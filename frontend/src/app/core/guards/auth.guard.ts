@@ -1,36 +1,18 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { inject } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
+export const AuthGuard: CanActivateFn = (
+  next: ActivatedRouteSnapshot, // eslint-disable-line @typescript-eslint/no-unused-vars
+  state: RouterStateSnapshot // eslint-disable-line @typescript-eslint/no-unused-vars
+) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<boolean> | boolean {
-    const token = localStorage.getItem('access_token');
-
-    if (!token) {
-      this.router.navigate(['/auth/login']);
-      return false;
-    }
-
-    return this.authService.currentUser$.pipe(
-      take(1),
-      map(user => {
-        const isLoggedIn = !!user;
-        if (!isLoggedIn) {
-          this.router.navigate(['/auth/login']);
-          return false;
-        }
-        return true;
-      })
-    );
+  if (!authService.isLoggedIn()) {
+    router.navigate(['/auth/login']).then();
+    return false;
   }
-}
+
+  return true;
+};

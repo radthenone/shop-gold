@@ -2,12 +2,39 @@ from core.settings.base import *
 
 # Debug settings
 DEBUG = True
+DJANGO_LOCAL = os.environ.get("DJANGO_LOCAL", "1") == "1"
+
+# Frontend integration
+FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "127.0.0.1")
+FRONTEND_PORT = os.environ.get("FRONTEND_PORT", "4200")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", f"http://{FRONTEND_HOST}:{FRONTEND_PORT}")
+
+# Extend allowed hosts
+ALLOWED_HOSTS += list(os.environ.get("ALLOWED_HOSTS", "").split(","))
 
 # Development apps
-INSTALLED_APPS += ["drf_spectacular"]
+INSTALLED_APPS += [
+    "drf_spectacular",
+    "debug_toolbar",
+]
+
+# Middleware settings
+MIDDLEWARE += [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
+
+# REST Framework - add schema class for development
+REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "drf_spectacular.openapi.AutoSchema"
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
     "http://localhost:4200",
     "http://127.0.0.1:4200",
 ]
@@ -28,6 +55,19 @@ CORS_ALLOW_METHODS = (
     "PUT",
 )
 
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-api-version",
+]
+
 # Storage settings
 USE_AWS = False
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "minioadmin")
@@ -45,13 +85,6 @@ STORAGES = {
     "staticfiles": {"BACKEND": "core.storages.StaticStorage"},
 }
 #
-# # Media files
-# MEDIA_URL = "/media/"
-# DEFAULT_FILE_STORAGE = "core.storages.PublicMediaStorage"
-#
-# # private media settings
-# PRIVATE_FILE_STORAGE = "core.storages.PrivateMediaStorage"
-
 # Logging configuration
 LOGGING = {
     "version": 1,
@@ -68,7 +101,18 @@ LOGGING = {
             "tracebacks_show_locals": True,
         }
     },
-    "loggers": {"django": {"handlers": ["console"], "level": "INFO"}},
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
 }
 
 # API Documentation settings

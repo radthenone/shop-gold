@@ -1,22 +1,15 @@
 import os
 from datetime import timedelta
 
+from django.utils.translation import gettext_lazy as _
+
 from core.paths import SRC_DIR
-
-DJANGO_LOCAL = os.environ.get("DJANGO_LOCAL", "1") == "1"
-
-# Frontend integration
-FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "localhost")
-FRONTEND_PORT = os.environ.get("FRONTEND_PORT", "8080")
-FRONTEND_URL = os.environ.get("FRONTEND_URL", f"http://{FRONTEND_HOST}:{FRONTEND_PORT}")
 
 # Core Django Settings
 SECRET_KEY = str(os.environ.get("DJANGO_SECRET_KEY", "secret_key"))
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = list(
     str(os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")).split(",")
 )
-ALLOWED_HOSTS += list(os.environ.get("ALLOWED_HOSTS", "").split(","))
 
 # Application definition
 DJANGO_APPS = [
@@ -37,7 +30,7 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "allauth",
-    # "allauth.account",
+    "allauth.account",
     "allauth.socialaccount",
     "allauth.mfa",
     "dj_rest_auth",
@@ -47,6 +40,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "apps.users",
+    "apps.auth",
     "apps.payments",
     "apps.orders",
     "apps.shop",
@@ -60,15 +54,14 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "kolo.middleware.KoloMiddleware",
-    # "allauth.account.middleware.AccountMiddleware",
-    "core.middleware.TOTPMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 # Basic Django config
@@ -77,6 +70,8 @@ AUTH_USER_MODEL = "users.User"
 SITE_ID = 1
 WSGI_APPLICATION = "core.wsgi.application"
 ASGI_APPLICATION = "core.asgi.application"
+# Internationalization
+TIME_ZONE = "Europe/Warsaw"
 
 TEMPLATES = [
     {
@@ -93,6 +88,21 @@ TEMPLATES = [
         },
     },
 ]
+
+# LANGUAGES
+# python manage.py makemessages -a
+# python manage.py compilemessages
+# python manage.py makemessages -a -s # to update existing translations
+# python manage.py makemessages -l pl -s
+
+LANGUAGE_CODE = "en"
+LANGUAGES = [
+    ("en", _("English")),
+    ("pl", _("Polish")),
+]
+LOCALE_PATHS = [SRC_DIR / "locale"]
+USE_I18N = True
+USE_L10N = True
 
 # Database
 DATABASES = {
@@ -116,21 +126,26 @@ PASSWORD_HASHERS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {"min_length": 8},
     },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "core.validators.password_validators.UpperCaseValidator",
+    },
+    {
+        "NAME": "core.validators.password_validators.LowerCaseValidator",
+    },
+    {
+        "NAME": "core.validators.password_validators.DigitValidator",
+    },
+    {
+        "NAME": "core.validators.password_validators.SpecialCharValidator",
+    },
 ]
-
-# Internationalization
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Europe/Warsaw"
-USE_I18N = True
-USE_TZ = True
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -150,7 +165,6 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@example.com")
 # Django AllAuth settings
 ACCOUNT_ADAPTER = "core.adapters.AccountAdapter"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-
 
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
@@ -189,7 +203,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "ALLOWED_VERSIONS": ["1", "2"],
+    "DEFAULT_VERSION": "1",
 }
 
 # JWT Settings
@@ -201,9 +216,3 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS512",
 }
-
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    FRONTEND_URL,
-]
-CORS_ALLOW_CREDENTIALS = True

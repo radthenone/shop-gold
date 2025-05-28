@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from django.contrib.auth.models import BaseUserManager
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.users.enums import Role
 
@@ -29,11 +30,11 @@ class UserManager(BaseUserManager):
         **extra_fields,
     ) -> "User":
         if not email:
-            raise ValueError("User must have an email address")
+            raise ValueError(_("User must have an email address"))
         if not username:
-            raise ValueError("User must have a username")
+            raise ValueError(_("User must have a username"))
         if not password:
-            raise ValueError("User must have a password")
+            raise ValueError(_("User must have a password"))
 
         email = self.normalize_email(email)
 

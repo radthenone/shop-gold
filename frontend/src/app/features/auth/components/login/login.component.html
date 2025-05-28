@@ -1,0 +1,51 @@
+<h2>LOGIN</h2>
+<div *ngIf="registrationMessage" class="alert alert-success">{{ registrationMessage }}</div>
+
+<!-- login form -->
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <!-- email label -->
+  <div class="mb-3">
+    <label for="email" class="form-label">Email:</label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      formControlName="email"
+      class="form-control"
+      [ngClass]="{ 'is-invalid': submitted && field['email'].errors }"
+      placeholder="default@email.com"
+      autocomplete="username email"
+    />
+    <div *ngIf="submitted && getFieldErrors('email')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('email')">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- password label -->
+  <div class="mb-3">
+    <label for="password" class="form-label">Password:</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      formControlName="password"
+      class="form-control"
+      [ngClass]="{ 'is-invalid': submitted && field['password'].errors }"
+      placeholder="Your password"
+      autocomplete="current-password"
+    />
+    <div *ngIf="submitted && getFieldErrors('password')" class="invalid-feedback">
+      <div *ngFor="let error of getFieldErrors('password')">{{ error.message }}</div>
+    </div>
+  </div>
+
+  <!-- login button -->
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary">Sign in</button>
+  </div>
+  <div *ngIf="submitted && getFormErrors">
+    <div class="alert alert-danger mt-3">
+      <div *ngFor="let error of getFormErrors()">{{ error.message }}</div>
+    </div>
+  </div>
+</form>

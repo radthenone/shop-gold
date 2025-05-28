@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api/v1',
-  wsUrl: 'ws://localhost:8080/ws'
+  backendUrl: 'http://localhost:8080',
+  defaultLang: 'pl',
+  wsUrl: 'ws://localhost:8080/ws',
+  defaultApiVersion: 'v1',
 };
