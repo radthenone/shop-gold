@@ -1,0 +1,12 @@
+{
+  "REGISTER": {
+    "TITLE": "Rejestracja",
+    "FIRST_NAME": "Imię",
+    "LAST_NAME": "Nazwisko",
+    "EMAIL": "Email",
+    "PASSWORD": "Hasło",
+    "CONFIRM_PASSWORD": "Potwierdź Hasło",
+    "REGISTER_BUTTON": "Zarejestruj się",
+    "ALREADY_HAVE_ACCOUNT": "Masz już konto? Zaloguj się tutaj."
+  }
+}

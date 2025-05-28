@@ -1,0 +1,6 @@
+<h1>Check Your Email</h1>
+<input type="text" placeholder="Enter your email" [(ngModel)]="email" />
+<button type="button" (click)="onCheckEmailSubmit()">Check Email</button>
+<div>
+  <p [ngClass]="{ 'success-message': emailSuccess, 'error-message': emailError }">{{ emailSuccess || emailError }}</p>
+</div>

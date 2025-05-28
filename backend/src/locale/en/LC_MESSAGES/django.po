@@ -1,0 +1,312 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-22 14:07+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: .\apps\auth\serializers\auth_serializers.py:32
+msgid "Username already exists."
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:41
+msgid "Email already exists."
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:60
+msgid "Passwords do not match"
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:117
+msgid "Invalid key"
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:129
+msgid "Error confirming email: {error!s}"
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:141
+msgid "Email address is already verified or does not exist."
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:198
+msgid "Invalid refresh token"
+msgstr ""
+
+#: .\apps\auth\serializers\auth_serializers.py:220
+msgid "Email address is not verified or does not exist."
+msgstr ""
+
+#: .\apps\auth\serializers\mfa_serializers.py:11
+msgid "Invalid TOTP code."
+msgstr ""
+
+#: .\apps\auth\serializers\mfa_serializers.py:21
+msgid "Invalid recovery code."
+msgstr ""
+
+#: .\apps\auth\views.py:91
+msgid "Wrong login credentials. Please try again."
+msgstr ""
+
+#: .\apps\auth\views.py:97
+msgid "Account is inactive"
+msgstr ""
+
+#: .\apps\auth\views.py:166
+#, python-brace-format
+msgid "Email {email_address.email} is not verified."
+msgstr ""
+
+#: .\apps\auth\views.py:173
+msgid "Email address not found for this user. Please try again."
+msgstr ""
+
+#: .\apps\auth\views.py:273
+msgid "TOTP is not set up for this user."
+msgstr ""
+
+#: .\apps\auth\views.py:330 .\apps\auth\views.py:474
+msgid "First you need log in"
+msgstr ""
+
+#: .\apps\auth\views.py:341
+msgid "Totp is not set up for this user."
+msgstr ""
+
+#: .\apps\auth\views.py:351 .\apps\auth\views.py:517
+msgid "Wrong code"
+msgstr ""
+
+#: .\apps\auth\views.py:384
+msgid "TOTP not activated for this user"
+msgstr ""
+
+#: .\apps\auth\views.py:391
+msgid "Cannot delete this authenticator"
+msgstr ""
+
+#: .\apps\auth\views.py:404 .\apps\auth\views.py:442
+msgid "MFA is not enabled for this user"
+msgstr ""
+
+#: .\apps\auth\views.py:410
+msgid "User cannot generate recovery codes"
+msgstr ""
+
+#: .\apps\auth\views.py:452 .\apps\auth\views.py:484
+msgid "No recovery codes found"
+msgstr ""
+
+#: .\apps\users\managers.py:33
+msgid "User must have an email address"
+msgstr ""
+
+#: .\apps\users\managers.py:35
+msgid "User must have a username"
+msgstr ""
+
+#: .\apps\users\managers.py:37
+msgid "User must have a password"
+msgstr ""
+
+#: .\apps\users\models.py:22
+msgid "A user with this email already exists."
+msgstr ""
+
+#: .\apps\users\models.py:26
+msgid "A user with this username already exists."
+msgstr ""
+
+#: .\core\settings\base.py:100
+msgid "English"
+msgstr ""
+
+#: .\core\settings\base.py:101
+msgid "Polish"
+msgstr ""
+
+#: .\core\urls.py:54
+msgid "api-auth/"
+msgstr ""
+
+#: .\core\urls.py:55
+msgid "api/v1/auth/"
+msgstr ""
+
+#: .\core\validators\password_validators.py:15
+msgid "This password must contain at least one uppercase letter."
+msgstr ""
+
+#: .\core\validators\password_validators.py:20
+msgid "Your password must contain at least one uppercase letter."
+msgstr ""
+
+#: .\core\validators\password_validators.py:31
+msgid "This password must contain at least one lowercase letter."
+msgstr ""
+
+#: .\core\validators\password_validators.py:36
+msgid "Your password must contain at least one lowercase letter."
+msgstr ""
+
+#: .\core\validators\password_validators.py:47
+msgid "This password must contain at least one digit."
+msgstr ""
+
+#: .\core\validators\password_validators.py:52
+msgid "Your password must contain at least one digit."
+msgstr ""
+
+#: .\core\validators\password_validators.py:67
+msgid ""
+"This password must contain at least one special character (e.g., @, $, !, %, "
+"*, ?, &)."
+msgstr ""
+
+#: .\core\validators\password_validators.py:75
+msgid ""
+"Your password must contain at least one special character from the set: @$!"
+"%*?&"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:7
+#: .\templates\account\email\email_confirmation.html:17
+#: .\templates\account\email\email_confirmation_signup.html:7
+#: .\templates\account\email\email_confirmation_signup.html:17
+msgid "Confirm Your Email Address"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:20
+#, python-format
+msgid ""
+"\n"
+"            You are receiving this email because\n"
+"            %(user_display)s requested to resend the verification code.\n"
+"            "
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:26
+#: .\templates\account\email\email_confirmation_signup.html:26
+msgid "Select your registration type:"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:29
+#: .\templates\account\email\email_confirmation_signup.html:29
+msgid "QR code is:"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:33
+#: .\templates\account\email\email_confirmation_signup.html:33
+msgid "Activation link is:"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:35
+#: .\templates\account\email\email_confirmation_signup.html:35
+msgid ""
+"Please enter this code in the application to complete the registration "
+"process."
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:36
+#: .\templates\account\email\email_confirmation_signup.html:36
+msgid "Code is available until 15 minutes:"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:37
+#: .\templates\account\email\email_confirmation_signup.html:37
+msgid "If you did not request this email, you can safely ignore it."
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:38
+#: .\templates\account\email\email_confirmation_signup.html:38
+msgid "Best regards,"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation.html:38
+#: .\templates\account\email\email_confirmation_signup.html:38
+msgid "Your Application Team"
+msgstr ""
+
+#: .\templates\account\email\email_confirmation_signup.html:20
+#, python-format
+msgid ""
+"\n"
+"            You are receiving this email because %(user_display)s has given "
+"your email address to register an account.\n"
+"            "
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:6
+#: .\templates\account\email\mfa_code.html:41
+msgid "Your Authentication Code"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:42
+#: .\templates\account\email\mfa_registration.html:42
+msgid "Hello"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:43
+msgid ""
+"You requested a multi-factor authentication code. Please use the following "
+"code to complete your authentication:"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:47
+#: .\templates\account\email\mfa_registration.html:47
+msgid "This code will expire in 10 minutes."
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:48
+msgid ""
+"If you did not request this code, please ignore this email and ensure your "
+"account is secure."
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:50
+#: .\templates\account\email\mfa_registration.html:50
+msgid "Thank you,"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:51
+#: .\templates\account\email\mfa_registration.html:51
+msgid "The Shop Gold Team"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:54
+#: .\templates\account\email\mfa_registration.html:54
+msgid "This email was sent to"
+msgstr ""
+
+#: .\templates\account\email\mfa_code.html:54
+#: .\templates\account\email\mfa_registration.html:54
+msgid "If you have questions or concerns, please contact our support team."
+msgstr ""
+
+#: .\templates\account\email\mfa_registration.html:6
+#: .\templates\account\email\mfa_registration.html:41
+msgid "Complete Your Registration"
+msgstr ""
+
+#: .\templates\account\email\mfa_registration.html:43
+msgid ""
+"Thank you for registering with Shop Gold. To complete your registration, "
+"please use the following verification code:"
+msgstr ""
+
+#: .\templates\account\email\mfa_registration.html:48
+msgid "If you did not register for an account, please ignore this email."
+msgstr ""
