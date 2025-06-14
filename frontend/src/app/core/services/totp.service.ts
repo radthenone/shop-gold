@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, BehaviorSubject, tap } from 'rxjs';
 import {
   TotpActivateRequest,
   TotpActivateResponse,
@@ -8,19 +8,29 @@ import {
   TotpSetupResponse,
   TotpStatusResponse,
   TotpVerifyRequest,
-} from '../models/totp.model';
-import { AuthResponse } from '../models/auth.model';
-import { UrlConfigService } from './url-config.service';
+} from '../interfaces/api/totp.interface';
+import { AuthResponse } from '../interfaces/api/auth.interface';
+import { AuthService, UrlConfigService } from '@core/services';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TOTPService {
-  private readonly API_URL = this.urlConfigService.getApiUrl();
+  private get API_URL(): string {
+    return this.urlConfigService.getApiUrl();
+  }
+
+  private _isTotpEnabledSubject = new BehaviorSubject<boolean>(false);
+  public isTotpEnabled$ = this._isTotpEnabledSubject.asObservable();
+
+  public get isTotpEnabled(): boolean {
+    return this._isTotpEnabledSubject.value;
+  }
 
   constructor(
     private http: HttpClient,
-    private urlConfigService: UrlConfigService
+    private urlConfigService: UrlConfigService,
+    private authService: AuthService
   ) {}
 
   // Helper private method for code validation
@@ -35,12 +45,23 @@ export class TOTPService {
     return code.trim().replace(/\s/g, '');
   }
 
+  public loadTotpStatus(): void {
+    this.getStatus().subscribe({
+      next: (status) => {
+        this._isTotpEnabledSubject.next(status.is_enabled);
+      },
+      error: () => {
+        this._isTotpEnabledSubject.next(false);
+      },
+    });
+  }
+
   getStatus(): Observable<TotpStatusResponse> {
     return this.http.get<TotpStatusResponse>(`${this.API_URL}/auth/totp/status/`);
   }
 
   setup(): Observable<TotpSetupResponse> {
-    return this.http.post<TotpSetupResponse>(`${this.API_URL}/auth/totp/setup/`, {});
+    return this.http.get<TotpSetupResponse>(`${this.API_URL}/auth/totp/setup/`);
   }
 
   activate({ code: totpCode }: TotpActivateRequest): Observable<TotpActivateResponse> {
@@ -71,6 +92,9 @@ export class TOTPService {
     const sanitizedCode = this._sanitizeCode(code);
 
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/totp/verify/`, { code: sanitizedCode }).pipe(
+      tap((response) => {
+        this.authService.setSession(response);
+      }),
       catchError((error) => {
         if (error.status === 400) {
           const message = error.error?.detail || error.error?.error || 'Wrong code';
@@ -90,6 +114,9 @@ export class TOTPService {
     return this.http
       .post<AuthResponse>(`${this.API_URL}/auth/totp/verify-recovery-code/`, { code: sanitizedCode })
       .pipe(
+        tap((response) => {
+          this.authService.setSession(response);
+        }),
         catchError((error) => {
           if (error.status === 400) {
             const message = error.error?.detail || error.error?.error || 'Wrong code';

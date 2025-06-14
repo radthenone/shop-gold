@@ -1,1 +1,22 @@
-<p>totp-verify works!</p>,
+<input
+  type="text"
+  [(ngModel)]="verificationCode"
+  (input)="onCodeInput()"
+  placeholder="000000"
+  maxlength="6"
+  class="verification-input"
+  [class.error]="codeError"
+  [disabled]="isVerifying"
+  autocomplete="off"
+/>
+
+<div *ngIf="codeError" class="error-message">{{ codeError }}</div>
+
+<button
+  type="button"
+  (click)="verifyCode()"
+  [disabled]="isVerifying || verificationCode.length !== 6"
+  class="primary-btn"
+>
+  {{ isVerifying ? 'Verifying...' : 'Verify Code' }}
+</button>

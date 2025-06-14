@@ -1,12 +1,102 @@
 {
-  "REGISTER": {
-    "TITLE": "Register",
-    "FIRST_NAME": "First Name",
-    "LAST_NAME": "Last Name",
+  "STATUS": {
+    "ENABLED": "Enabled",
+    "DISABLED": "Disabled"
+  },
+  "ERROR": {
+    "TOTP": {
+      "INVALID_CODE": "Please enter a 6-digit verification code.",
+      "FAILED_LOAD": "Failed to load TOTP setup data. Please try again later."
+    },
+    "FIELD_REQUIRED": "This field is required",
+    "INVALID_EMAIL": "Please enter a valid email address",
+    "INVALID_EMAIL_FORMAT": "Please enter the correct e-mail address.",
+    "MIN_LENGTH": "Minimal length is {min} characters",
+    "MAX_LENGTH": "Maximum length is {max} characters",
+    "PATTERN_MISMATCH": "This field does not match the required pattern",
+    "PASSWORD_MISMATCH": "Passwords do not match",
+    "PASSWORDS_DONT_MATCH": "The provided passwords are not identical",
+    "UPPERCASE_REQUIRED": "At least one uppercase letter is required",
+    "LOWERCASE_REQUIRED": "At least one lowercase letter is required",
+    "NUMBER_REQUIRED": "At least one number is required",
+    "SPECIAL_CHAR_REQUIRED": "At least one special character is required",
+    "VALIDATION": "Validation error: {error}",
+    "GENERIC": "An error occurred, please try again later.",
+    "NO_VERIFICATION_KEY": "No verification key in URL. Contact technical help.",
+    "PAGE_NOT_FOUND": "Page not found. Please check the URL or contact support.",
+    "NOT_LOGGED_IN": "You are not logged in. Please log in to continue."
+  },
+  "SUCCESS": {
+    "TOTP": {
+      "ACTIVATE_SUCCESS": "TOTP code has been successfully activated.",
+      "RECOVERY_CODES": "Your recovery codes are ready. Please save them securely."
+    },
+    "CHECK_EMAIL": "Please check your email for the verification link.",
+    "EMAIL_RESEND": "Verification email has been resent successfully.",
+    "EMAIL_VERIFIED": "Your email has been successfully verified."
+  },
+  "LOADING": {
+    "TOTP": {
+      "SETUP": "Loading setup data..."
+    },
+    "EMAIL_RESEND": "Resending verification email...",
+    "EMAIL_IN_PROGRESS": "Email verification in progress..."
+  },
+  "BUTTON": {
+    "TOTP": {
+      "ACTIVATE_BUTTON": "Activate TOTP Code",
+      "CONTINUE_BUTTON": "Continue to Verification"
+    },
+    "RETRY": "Retry",
+    "REGISTER": "Register",
+    "LOGIN": "Login",
+    "LOGOUT": "Logout",
+    "BACK_TO_LOGIN": "Back to Login",
+    "BACK_TO_REGISTRATION": "Don't have an account? Register here",
+    "CHECK_EMAIL": "Check your email",
+    "ENGLISH": "English",
+    "POLISH": "Polish",
+    "COPY": "Copy",
+    "COPY_SUCCESS": "Copied to clipboard",
+    "COPY_ERROR": "Error copying to clipboard",
+    "GO_BACK": "Go Back"
+  },
+  "FIELD": {
+    "USERNAME": "Username",
     "EMAIL": "Email",
     "PASSWORD": "Password",
     "CONFIRM_PASSWORD": "Confirm Password",
-    "REGISTER_BUTTON": "Register",
-    "ALREADY_HAVE_ACCOUNT": "Already have an account? Log in here."
+    "FIRST_NAME": "First Name",
+    "LAST_NAME": "Last Name",
+    "TERMS_AND_CONDITIONS": "Regulations and Conditions",
+    "TERM_LINK": "Terms",
+    "PRIVACY_LINK": "Privacy Policy",
+    "EMAIL_RESEND": "Resend Verification Email",
+    "EMAIL_RESEND_DESC": "Enter your email address to receive a new verification email."
+  },
+  "FIELD_PLACEHOLDER": {
+    "USERNAME": "Write your username",
+    "EMAIL": "Write your email",
+    "PASSWORD": "Your password",
+    "CONFIRM_PASSWORD": "Confirm your password",
+    "FIRST_NAME": "Write your first name",
+    "LAST_NAME": "Write your last name"
+  },
+  "LABEL": {
+    "TOTP": {
+      "ACTIVATE_CODE": "Activate TOTP Code"
+    },
+    "REGISTER": "Register",
+    "LOGIN": "Login",
+    "CHECK_EMAIL": "Check your email for the verification link"
+  },
+  "TITLE": {
+    "TOTP": {
+      "TOTP_SETUP_TITLE": "Set up Two-Factor Authentication",
+      "SETUP_STEP_1": "Step 1: Scan QR Code",
+      "SETUP_STEP_1_EXTRA": "Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):",
+      "SETUP_STEP_2": "Step 2: Or enter manually",
+      "SETUP_STEP_2_EXTRA": "If you can't scan the QR code, enter this secret key manually in your authenticator app:"
+    }
   }
 }

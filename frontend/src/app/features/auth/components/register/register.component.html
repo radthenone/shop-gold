@@ -1,16 +1,16 @@
-<h2>REGISTER</h2>
+<h2>{{ 'LABEL.REGISTER' | translate }}</h2>
 
 <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
   <!-- username label -->
 
   <div class="mb-3">
-    <label for="username" class="form-label"> Username </label>
+    <label for="username" class="form-label">{{ 'FIELD.USERNAME' | translate }}</label>
     <input
       id="username"
       type="text"
       formControlName="username"
       class="form-control"
-      placeholder="Username"
+      [placeholder]="'FIELD.USERNAME' | translate"
       autocomplete="username"
       name="username"
       [ngClass]="{ 'is-invalid': submitted && field['username'].errors }"
@@ -22,13 +22,13 @@
 
   <!-- email label -->
   <div class="mb-3">
-    <label for="email" class="form-label"> Email </label>
+    <label for="email" class="form-label">{{ 'FIELD.EMAIL' | translate }}</label>
     <input
       id="email"
       type="email"
       formControlName="email"
       class="form-control"
-      placeholder="default@email.com"
+      [placeholder]="'FIELD_PLACEHOLDER.EMAIL' | translate"
       autocomplete="email"
       name="email"
       [ngClass]="{ 'is-invalid': submitted && field['email'].errors }"
@@ -40,14 +40,14 @@
 
   <!-- password label -->
   <div class="mb-3">
-    <label for="password" class="form-label"> Password: </label>
+    <label for="password" class="form-label">{{ 'FIELD.PASSWORD' | translate }}</label>
     <input
       id="password"
       name="password"
       type="password"
       formControlName="password"
       class="form-control"
-      placeholder="Your password"
+      [placeholder]="'FIELD_PLACEHOLDER.PASSWORD' | translate"
       autocomplete="new-password"
       [ngClass]="{ 'is-invalid': submitted && field['password'].errors }"
     />
@@ -58,14 +58,14 @@
 
   <!-- confirm password label -->
   <div class="mb-3">
-    <label for="password_confirm" class="form-label"> Confirm Password: </label>
+    <label for="password_confirm" class="form-label">{{ 'FIELD.CONFIRM_PASSWORD' | translate }}</label>
     <input
       id="password_confirm"
       name="password_confirm"
       type="password"
       formControlName="password_confirm"
       class="form-control"
-      placeholder="Confirm password"
+      [placeholder]="'FIELD_PLACEHOLDER.CONFIRM_PASSWORD' | translate"
       autocomplete="new-password"
       [ngClass]="{ 'is-invalid': submitted && field['password_confirm'].errors }"
     />
@@ -73,19 +73,19 @@
       <div *ngFor="let error of getFieldErrors('password_confirm')">{{ error.message }}</div>
     </div>
     <div *ngIf="submitted && getFormError('passwordsDontMatch')" class="invalid-feedback">
-      {{ getFormError('passwordsDontMatch')?.message || 'Passwords do not match' }}
+      {{ getFormError('passwordsDontMatch')?.message || ('REGISTER.PASSWORDS_DONT_MATCH' | translate) }}
     </div>
   </div>
 
   <!-- first name label -->
   <div class="mb-3">
-    <label for="first_name" class="form-label"> First Name: </label>
+    <label for="first_name" class="form-label">{{ 'FIELD.FIRST_NAME' | translate }}</label>
     <input
       id="first_name"
       type="text"
       formControlName="first_name"
       class="form-control"
-      placeholder="John"
+      [placeholder]="'FIELD_PLACEHOLDER.FIRST_NAME' | translate"
       name="first_name"
       autocomplete="given-name"
       [ngClass]="{ 'is-invalid': submitted && field['first_name'].errors }"
@@ -97,13 +97,13 @@
 
   <!-- last name label -->
   <div class="mb-3">
-    <label for="last_name" class="form-label"> Last Name: </label>
+    <label for="last_name" class="form-label">{{ 'FIELD.LAST_NAME' | translate }}</label>
     <input
       id="last_name"
       type="text"
       formControlName="last_name"
       class="form-control"
-      placeholder="Doe"
+      [placeholder]="'FIELD_PLACEHOLDER.LAST_NAME' | translate"
       name="last_name"
       autocomplete="family-name"
       [ngClass]="{ 'is-invalid': submitted && field['last_name'].errors }"
@@ -124,10 +124,10 @@
       [ngClass]="{ 'is-invalid': submitted && field['termsAndConditions'].errors }"
     />
     <label class="form-check-label" for="termsAndConditions">
-      Accept
-      <a [routerLink]="['/terms']">regulations</a>
+      {{ 'FIELD.TERMS_AND_CONDITIONS' | translate }}
+      <a [routerLink]="['/terms']">{{ 'FIELD.TERM_LINK' | translate }}</a>
       i
-      <a [routerLink]="['/privacy']">privacy policy</a>
+      <a [routerLink]="['/privacy']">{{ 'FIELD.PRIVACY_LINK' | translate }}</a>
     </label>
     <div *ngIf="submitted && getFieldErrors('termsAndConditions') as termsAndConditionsErrors" class="invalid-feedback">
       <div *ngFor="let error of termsAndConditionsErrors">{{ error.message }}</div>
@@ -140,6 +140,8 @@
 
   <!-- register button -->
   <div class="form-group">
-    <button type="submit" class="btn btn-primary">Register in</button>
+    <button type="submit" class="btn btn-primary">{{ 'BUTTON.REGISTER' | translate }}</button>
   </div>
 </form>
+<!-- Back to Login -->
+<app-back-to [label]="'BUTTON.BACK_TO_LOGIN'" [route]="['auth', 'login']"></app-back-to>

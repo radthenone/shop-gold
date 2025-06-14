@@ -9,8 +9,9 @@ const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 const exceptionsPaths = [
   '/auth/register/',
-  '/auth/totp/setup/',
-  '/auth/totp/activate/',
+  '/auth/login/',
+  '/auth/refresh/',
+  '/auth/logout/',
   '/auth/totp/verify/',
   '/auth/totp/verify-recovery-code/',
   '/auth/check-email/',
@@ -78,11 +79,23 @@ function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, auth
         refreshTokenSubject.next(response.access);
         return next(addJwtToken(request, response.access));
       }),
-      catchError((refreshError) => {
+      catchError(() => {
         isRefreshing = false;
         refreshTokenSubject.next(null);
+
+        // Logout user when refresh token fails
         authService.logout();
-        return throwError(() => refreshError);
+
+        // Don't propagate refresh token errors to components
+        // Return the original 401 error instead of the refresh error
+        return throwError(
+          () =>
+            new HttpErrorResponse({
+              error: { detail: 'Session expired. Please log in again.' },
+              status: 401,
+              statusText: 'Unauthorized',
+            })
+        );
       }),
       finalize(() => {
         isRefreshing = false;

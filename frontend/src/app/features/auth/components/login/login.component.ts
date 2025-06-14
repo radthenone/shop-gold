@@ -1,45 +1,43 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AuthService } from '@core/services/auth.service';
-import { Router } from '@angular/router';
 import { strongPasswordValidator } from '@shared/validators/password-strength.validator';
 import { AbstractControl } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { LoggingService } from '../../../../core/services/logging.service';
-import { ErrorService } from '../../../../core/services/error.service';
-import { FieldError } from '@core/models/error.model';
+import { AuthService, LoggingService, ErrorService, NavigationService } from '@core/services';
+import { FieldError } from '@core/interfaces';
+import { TranslateModule } from '@ngx-translate/core';
+import { BackToComponent } from '@shared/components/buttons';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, TranslateModule, BackToComponent],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm!: FormGroup;
   submitted = false;
-  registrationMessage: string | null = null;
+  navSuccessMessage: string | null = null;
   private authSubscription: Subscription | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router,
-    private loggingService: LoggingService,
-    private errorService: ErrorService
+    private logService: LoggingService,
+    private errorService: ErrorService,
+    private navService: NavigationService
   ) {
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state && navigation?.extras.state['registerMessage']) {
-      this.registrationMessage = navigation.extras.state['registerMessage'] as string;
+    if (this.navService.isStateValid('navSuccessMessage')) {
+      this.navSuccessMessage = this.navService.getStateValue('navSuccessMessage') as string;
     }
   }
 
   ngOnInit() {
     this.loginForm = this.fb.group({
-      email: ['adam@adam.com', [Validators.required, Validators.email]],
+      email: ['user@example.com', [Validators.required, Validators.email]],
       password: ['Password12345!', [Validators.required, strongPasswordValidator.passwordStrength]],
     });
   }
@@ -75,17 +73,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.authSubscription = this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         if ('access' in response && 'refresh' in response) {
-          setTimeout(() => {
-            this.router.navigate(['/']).then();
-          }, 1000);
+          this.navService.navigateWithLang([]);
+          this.logService.info('User logged in successfully', response);
         } else if ('mfa_required' in response) {
-          setTimeout(() => {
-            this.router.navigate(['/totp/verify/']).then();
-          }, 1000);
+          this.navService.navigateWithLang(['totp', 'verify']);
+          this.logService.info('MFA required, redirecting to TOTP verification', response);
         }
       },
       error: (error) => {
         this.errorService.handleServerErrors(this.loginForm, error);
+        this.logService.error('Login failed', error);
       },
     });
   }

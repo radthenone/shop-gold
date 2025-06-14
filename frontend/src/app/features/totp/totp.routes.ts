@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router';
-import { TotpVerifyComponent } from '@features/totp/components/totp-verify/totp-verify.component';
+import { TotpVerifyComponent, TotpStatusComponent, TotpSetupComponent } from '@features/totp/components';
 
 export const TOTP_ROUTES: Routes = [
   {
-    path: 'totp',
-    children: [
-      {
-        path: 'verify',
-        component: TotpVerifyComponent,
-      },
-    ],
+    path: 'verify',
+    component: TotpVerifyComponent,
+  },
+  {
+    path: 'status',
+    component: TotpStatusComponent,
+  },
+  {
+    path: 'setup',
+    component: TotpSetupComponent,
   },
 ];

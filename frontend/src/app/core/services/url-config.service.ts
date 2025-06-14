@@ -20,26 +20,32 @@ export class UrlConfigService {
 
   private parseUrlPath(): void {
     try {
-      const pathSegments = window.location.pathname.split('/').filter((segment) => segment.length > 0);
+      const pathname = window.location.pathname;
 
-      if (pathSegments.length >= 2) {
+      const pathSegments = pathname.split('/').filter((segment) => segment.length > 0);
+
+      if (pathSegments.length >= 1) {
         const langCandidate = pathSegments[0];
-        const versionCandidate = pathSegments[1];
 
-        if (langCandidate.length === 2 && versionCandidate.startsWith('v')) {
+        // Check if the first segment is a valid language code
+        if (langCandidate.length === 2 && ['pl', 'en'].includes(langCandidate)) {
           this.currentLangSubject.next(langCandidate);
-          this.currentApiVersionSubject.next(versionCandidate);
-          console.log(`Language set to: ${this.getLanguage()}, Version set to: ${this.getApiVersion()} from URL.`);
+
+          // Check if there's also a version in the URL (for API calls)
+          if (pathSegments.length >= 2 && pathSegments[1].startsWith('v')) {
+            this.currentApiVersionSubject.next(pathSegments[1]);
+          } else {
+            this.currentApiVersionSubject.next(DEFAULT_API_VERSION);
+          }
           return;
         }
       }
     } catch (error) {
-      console.error('Error parsing language and version from URL:', error);
+      // Error parsing language and version from URL
     }
 
     this.currentLangSubject.next(DEFAULT_LANG);
     this.currentApiVersionSubject.next(DEFAULT_API_VERSION);
-    console.warn(`Using default language: ${this.getLanguage()}, default version: ${this.getApiVersion()}.`);
   }
 
   public changeLanguage(lang: string): void {

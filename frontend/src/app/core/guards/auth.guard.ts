@@ -1,5 +1,6 @@
-import { ActivatedRouteSnapshot, RouterStateSnapshot, Router, CanActivateFn } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { NavigationService } from '../services/navigation.service';
 import { inject } from '@angular/core';
 
 export const AuthGuard: CanActivateFn = (
@@ -7,10 +8,10 @@ export const AuthGuard: CanActivateFn = (
   state: RouterStateSnapshot // eslint-disable-line @typescript-eslint/no-unused-vars
 ) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
+  const navigationService = inject(NavigationService);
 
   if (!authService.isLoggedIn()) {
-    router.navigate(['/auth/login']).then();
+    navigationService.navigateWithLang(['auth', 'login']).then();
     return false;
   }
 

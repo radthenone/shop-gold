@@ -1,18 +1,22 @@
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LoggingService } from '@core/services/logging.service';
-import { DjangoError, MessageError, FieldError } from '@core/models/error.model';
+import { LoggingService, TranslateService } from '@core/services';
+import { DjangoError, MessageError, FieldError } from '@core/interfaces';
+import { strongPasswordValidator } from '@shared/validators/password-strength.validator';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ErrorService {
+  private fieldErrors: { [field: string]: FieldError | null } = {};
   isFormErrorGlobalCreated: boolean = false;
   isFormErrorsCreated: boolean = false;
   serverErrorKeys = ['serverNonFieldErrors', 'serverFieldErrors'];
-
-  constructor(private logger: LoggingService) {}
+  constructor(
+    private logger: LoggingService,
+    private translate: TranslateService
+  ) {}
 
   private getClientMessage(errorType: string, errorValue?: any): MessageError {
     /**
@@ -20,34 +24,41 @@ export class ErrorService {
      */
     switch (errorType) {
       case 'required':
-        return { message: 'This field is required.' };
+        return { message: this.translate.translateFunction('ERROR.FIELD_REQUIRED') };
       case 'email':
-        return { message: 'Please enter a valid email address.' };
+        return { message: this.translate.translateFunction('ERROR.INVALID_EMAIL') };
       case 'minlength':
-        return { message: `Minimum length is ${errorValue?.requiredLength} characters.` };
+      case 'minLength': {
+        return {
+          message: this.translate.translateFunction('ERROR.MIN_LENGTH', {
+            min: errorValue?.requiredLength || strongPasswordValidator.MIN_LENGTH,
+          }),
+        };
+      }
       case 'maxlength':
-        return { message: `Maximum length is ${errorValue?.requiredLength} characters.` };
+      case 'maxLength':
+        return {
+          message: this.translate.translateFunction('ERROR.MAX_LENGTH', {
+            max: errorValue?.requiredLength || '20',
+          }),
+        };
       case 'pattern':
-        return { message: 'Value does not match the required pattern.' };
+        return { message: this.translate.translateFunction('ERROR.PATTERN_MISMATCH') };
       case 'passwordMismatch':
-        return { message: 'Passwords do not match.' };
+        return { message: this.translate.translateFunction('ERROR.PASSWORD_MISMATCH') };
       case 'passwordsDontMatch':
-        return { message: 'The provided passwords are not identical.' };
-      case 'requiredTrue':
-        return { message: 'This field must be checked.' };
-      case 'minLength':
-        return { message: 'Password is too short.' };
+        return { message: this.translate.translateFunction('ERROR.PASSWORDS_DONT_MATCH') };
       case 'upperCase':
-        return { message: 'Password must contain at least one uppercase letter.' };
+        return { message: this.translate.translateFunction('ERROR.UPPERCASE_REQUIRED') };
       case 'lowerCase':
-        return { message: 'Password must contain at least one lowercase letter.' };
+        return { message: this.translate.translateFunction('ERROR.LOWERCASE_REQUIRED') };
       case 'digit':
-        return { message: 'Password must contain at least one digit.' };
+        return { message: this.translate.translateFunction('ERROR.NUMBER_REQUIRED') };
       case 'specialChar':
-        return { message: 'Password must contain at least one special character.' };
+        return { message: this.translate.translateFunction('ERROR.SPECIAL_CHAR_REQUIRED') };
       default:
         this.logger.warn(`Unrecognized client error type: ${errorType}`);
-        return { message: `Validation error: ${errorType}` };
+        return { message: this.translate.translateFunction('ERROR.VALIDATION', { error: errorType }) };
     }
   }
 
@@ -132,29 +143,27 @@ export class ErrorService {
     });
 
     if (clientErrors.length > 0) {
-      // this.logger.debug(`getAllErrorsForField: Client errors for field '${fieldName}':`, clientErrors);
+      this.logger.debug(`getAllErrorsForField: Client errors for field '${fieldName}':`, clientErrors);
       return clientErrors;
     }
 
     const serverFieldErrors = errors['serverFieldErrors'];
     if (serverFieldErrors && Array.isArray(serverFieldErrors) && serverFieldErrors.length > 0) {
-      // this.logger.debug(`getAllErrorsForField: Server errors for field '${fieldName}':`, serverFieldErrors);
+      this.logger.debug(`getAllErrorsForField: Server errors for field '${fieldName}':`, serverFieldErrors);
       return serverFieldErrors as FieldError[];
     }
 
-    this.logger.warn(
-      `getAllErrorsForField: Nie znaleziono aktywnych błędów klienta ani serwera dla pola '${fieldName}'.`
-    );
+    this.logger.warn(`getAllErrorsForField: Not found '${fieldName}'.`);
     return null;
   }
 
   setDjangoErrors(error: HttpErrorResponse): DjangoError | null {
     /**
-     * Konwertuje odpowiedź błędu z serwera na obiekt DjangoError.
-     * Obsługuje różne formaty odpowiedzi z DRF.
+     * Converts the error response from the server to the DjangoError object.
+     * Supports various formats of answers from DRF.
      */
     if (!error || !error.error) {
-      this.logger.error('setDjangoErrors: Brak obiektu błędu lub error.error w odpowiedzi HTTP.');
+      this.logger.error('setDjangoErrors: Wrong error format or no error provided.', error);
       return null;
     }
     if (typeof error.error === 'string') {
@@ -171,10 +180,10 @@ export class ErrorService {
     if (
       typeof error.error === 'object' &&
       error.error !== null &&
-      'detail' in error.error &&
-      typeof error.error.errors === 'string'
+      'errors' in error.error &&
+      Array.isArray(error.error.errors)
     ) {
-      return { non_field_errors: [error.error.errors] };
+      return { non_field_errors: error.error.errors };
     }
     if (typeof error.error === 'object' && error.error !== null) {
       return error.error as DjangoError;
@@ -194,7 +203,7 @@ export class ErrorService {
 
     const nonFieldErrorsMessages: string[] = error.non_field_errors;
 
-    const fieldErrors: FieldError[] = nonFieldErrorsMessages.map((msg) => ({
+    const fieldErrors: FieldError[] = nonFieldErrorsMessages.map((msg: string) => ({
       value: true,
       message: msg,
       errorType: 'serverNonFieldError',
@@ -203,7 +212,6 @@ export class ErrorService {
     form.setErrors({ ...form.errors, serverNonFieldErrors: fieldErrors });
     form.markAsTouched();
   }
-
   getServerFieldErrors(form: FormGroup, error: DjangoError): void {
     /**
      * Sets field-specific errors from the server response to the form.
@@ -212,6 +220,7 @@ export class ErrorService {
     if (!error) {
       return;
     }
+
     Object.keys(error).forEach((field) => {
       if (field === 'non_field_errors') {
         return;
@@ -221,7 +230,7 @@ export class ErrorService {
       if (control) {
         const messages = error[field];
         if (messages && messages.length > 0) {
-          const fieldErrors: FieldError[] = messages.map((msg) => ({
+          const fieldErrors: FieldError[] = messages.map((msg: string) => ({
             value: true,
             message: msg,
             errorType: 'serverFieldError',
@@ -230,20 +239,19 @@ export class ErrorService {
           control.markAsTouched();
         }
       } else {
-        this.logger.warn(`getServerFieldErrors: Nie znaleziono kontrolki dla pola '${field}' w formularzu.`);
+        this.logger.warn(`getServerFieldErrors: Not found control '${field}' in form.`);
       }
     });
   }
 
   handleError(error: HttpErrorResponse, fieldName?: string): string | null {
     /**
-     * Przetwarza błąd HTTP.
-     * Jeśli `fieldName` jest podany, zwraca pierwszy błąd dla tego konkretnego pola.
-     * Jeśli `fieldName` nie jest podany, zwraca pierwszy napotkany błąd `non_field_errors`.
-     * Jeśli nie ma `non_field_errors`, zwraca pierwszy napotkany błąd dla dowolnego pola.
-     * W przeciwnym razie zwraca null.
+     *Processes http error.
+     *If `Fieldname` is given, he returns the first mistake for this particular field.
+     *If `Fieldname" is not given, the first error encountered 'non_field_errors' returns.
+     *If there is no `Non_field_errors`, the first mistake for any field returns.
+     *Otherwise he returns Null.
      */
-    // console.log('Original HTTP Error:', error); // Komentarz: Oryginalny błąd HTTP
 
     if (!error) {
       return null;
@@ -291,14 +299,12 @@ export class ErrorService {
      * Handles server errors by setting them in the form.
      * This is useful for displaying validation messages related to server-side validation.
      */
-    this.logger.logHttpError(error, 'FormError');
+    // this.logger.logHttpError(error, 'FormError');
 
     const djangoError = this.setDjangoErrors(error);
 
-    this.logger.info('Otrzymane błędy serwera (po przetworzeniu):', djangoError);
-
     if (!djangoError) {
-      this.logger.warn('handleServerErrors: djangoError jest null, nie można ustawić błędów serwera.');
+      this.logger.warn('handleServerErrors: djangoError is null, cannot set server errors.');
       return;
     }
 
@@ -308,12 +314,65 @@ export class ErrorService {
     this.logFormState(form);
   }
 
+  setFieldError(fieldName: string, error: string | HttpErrorResponse | null): void {
+    /**
+     * Sets a field error for a specific field in the form.
+     * If the error is an instance of HttpErrorResponse, it processes the error and sets the appropriate message.
+     * If the error is null, it clears the field error.
+     */
+    if (!fieldName) return;
+
+    if (typeof error === 'string') {
+      this.fieldErrors[fieldName] = {
+        value: true,
+        message: error,
+        errorType: 'clientFieldError',
+      };
+      return;
+    }
+
+    if (error instanceof HttpErrorResponse) {
+      const errorMessage = this.handleError(error, fieldName);
+      if (errorMessage) {
+        this.fieldErrors[fieldName] = {
+          value: true,
+          message: errorMessage,
+          errorType: 'serverFieldError',
+        };
+      } else {
+        this.fieldErrors[fieldName] = null;
+      }
+      return;
+    }
+
+    if (error === null) {
+      this.fieldErrors[fieldName] = null;
+    }
+  }
+
+  getFieldError(fieldName: string): string | null {
+    /**
+     * Returns the field error for a specific field.
+     * If no error is set for the field, it returns null.
+     */
+    return this.fieldErrors[fieldName]?.message || null;
+  }
+
+  clearFieldError(fieldName: string): void {
+    /**
+     * Clears the field error for a specific field.
+     * This is useful when the error is resolved and no longer needs to be displayed.
+     */
+    if (fieldName) {
+      this.fieldErrors[fieldName] = null;
+    }
+  }
+
   private logFormState(form: FormGroup): void {
     /**
      * Loguje stan formularza dla celów debugowania.
-     * TODO: Rozważyć ograniczenie logowania w środowisku produkcyjnym.
      */
-    this.logger.debug('Stan formularza:', {
+    this.logger.debug('Form error status:', {
       valid: form.valid,
       invalid: form.invalid,
       touched: form.touched,

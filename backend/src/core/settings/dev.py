@@ -58,6 +58,7 @@ CORS_ALLOW_METHODS = (
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
+    "accept-language",
     "authorization",
     "content-type",
     "dnt",
@@ -122,6 +123,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "COMPONENT_SPLIT_RESPONSE": True,
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
         "persistAuthorization": True,

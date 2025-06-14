@@ -95,7 +95,7 @@ TEMPLATES = [
 # python manage.py makemessages -a -s # to update existing translations
 # python manage.py makemessages -l pl -s
 
-LANGUAGE_CODE = "en"
+LANGUAGE_CODE = "pl"
 LANGUAGES = [
     ("en", _("English")),
     ("pl", _("Polish")),

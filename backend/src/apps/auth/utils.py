@@ -10,7 +10,8 @@ def get_jwt_tokens_for_user(user: User) -> tuple[str, str]:
     Generate JWT tokens for the given user.
     """
     refresh = RefreshToken.for_user(user)
-    return str(refresh), str(refresh.access_token)
+    access = str(refresh.access_token)
+    return access, str(refresh)
 
 
 def get_session_mfa_user(request: Request) -> User | None:

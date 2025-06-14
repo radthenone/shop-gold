@@ -16,7 +16,10 @@ export class strongPasswordValidator {
 
     // Validation password length
     if (value.length < strongPasswordValidator.MIN_LENGTH) {
-      errors['minLength'] = true;
+      errors['minLength'] = {
+        requiredLength: strongPasswordValidator.MIN_LENGTH,
+        actualLength: value.length,
+      };
       hasError = true;
     }
 

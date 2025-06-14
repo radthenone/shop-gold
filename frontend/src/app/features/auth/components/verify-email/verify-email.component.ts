@@ -1,27 +1,34 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '@app/core/services/auth.service';
+import { AuthService, NavigationService, TranslateService } from '@app/core/services';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  template: `<p>Email verification in progress ...</p>`,
+  template: `<p>{{ loadingMessage }}</p>`,
 })
 export class VerifyEmailComponent implements OnInit {
+  loadingMessage: string = '';
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private navigationService: NavigationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
+    this.loadingMessage = this.translate.translateFunction('LOADING.EMAIL_IN_PROGRESS');
     const key = this.route.snapshot.paramMap.get('key');
     if (key) {
       this.verifyEmail(key);
     } else {
-      this.router
-        .navigate(['/'], { state: { errorverifyMessage: 'No verification key in URL. Contact technical help.' } })
+      const errorMessage = this.translate.translateFunction('ERROR.NO_VERIFICATION_KEY');
+      this.navigationService
+        .navigateWithLang([''], {
+          state: { errorverifyMessage: errorMessage },
+        })
         .then();
     }
   }
@@ -29,9 +36,9 @@ export class VerifyEmailComponent implements OnInit {
   verifyEmail(key: string): void {
     this.authService.verifyEmail(key).subscribe({
       next: (response: { detail: string }) => {
-        const successMessage = response.detail || 'Email verified successfully.';
-        this.router
-          .navigate(['/auth/login'], {
+        const successMessage = response.detail || this.translate.translateFunction('SUCCESS.EMAIL_VERIFIED');
+        this.navigationService
+          .navigateWithLang(['auth', 'login'], {
             state: {
               verifyMessage: successMessage,
             },
@@ -39,8 +46,12 @@ export class VerifyEmailComponent implements OnInit {
           .then();
       },
       error: (error: HttpErrorResponse) => {
-        const errorMessage = error?.error?.detail || 'An error occurred while verifying the email. Please try again.';
-        this.router.navigate(['/'], { state: { errorverifyMessage: errorMessage } }).then();
+        const errorMessage = error?.error?.detail || this.translate.translateFunction('ERROR.GENERIC');
+        this.navigationService
+          .navigateWithLang([''], {
+            state: { errorverifyMessage: errorMessage },
+          })
+          .then();
       },
     });
   }

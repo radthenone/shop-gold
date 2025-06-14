@@ -1,6 +1,8 @@
-<h1>Check Your Email</h1>
-<input type="text" placeholder="Enter your email" [(ngModel)]="email" />
-<button type="button" (click)="onCheckEmailSubmit()">Check Email</button>
+<h1>{{ 'LABEL.CHECK_EMAIL' | translate }}</h1>
+<input type="text" placeholder="{{ 'FIELD_PLACEHOLDER.EMAIL' | translate }}" [(ngModel)]="email" />
+<button type="button" (click)="onCheckEmailSubmit()">{{ 'BUTTON.CHECK_EMAIL' | translate }}</button>
 <div>
   <p [ngClass]="{ 'success-message': emailSuccess, 'error-message': emailError }">{{ emailSuccess || emailError }}</p>
 </div>
+<!-- Back to Login -->
+<app-back-to [label]="'BUTTON.BACK_TO_LOGIN'" [route]="['auth', 'login']"></app-back-to>

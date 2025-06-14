@@ -1,0 +1,20 @@
+<input
+  type="text"
+  [(ngModel)]="recoveryCode"
+  placeholder="000000"
+  maxlength="6"
+  class="verification-input"
+  [class.error]="codeError"
+  [disabled]="isVerifying"
+  autocomplete="off"
+/>
+
+<div *ngIf="codeError" class="error-message">{{ codeError }}</div>
+<button
+  type="button"
+  (click)="verifyRecoveryCode()"
+  [disabled]="isVerifying || recoveryCode.length !== 6"
+  class="primary-btn"
+>
+  {{ isVerifying ? 'Verifying...' : 'Verify Recovery Code' }}
+</button>

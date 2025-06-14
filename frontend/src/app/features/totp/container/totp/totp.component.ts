@@ -1,0 +1,10 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-totp',
+  standalone: true,
+  imports: [],
+  templateUrl: './totp.component.html',
+  styleUrls: ['./totp.component.css'],
+})
+export class TotpComponent {}

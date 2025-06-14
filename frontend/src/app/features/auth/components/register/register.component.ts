@@ -1,23 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService } from '@core/services/auth.service';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { strongPasswordValidator } from '@shared/validators/password-strength.validator';
 import { passwordMatchValidator } from '@shared/validators/passwords-match-validator';
-import { RegisterRequest } from '@core/models/auth.model';
+import { RegisterRequest } from '@core/interfaces/api/auth.interface';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorService } from '@core/services/error.service';
-import { LoggingService } from '@core/services/logging.service';
-import { FieldError } from '@core/models/error.model';
+import { FieldError } from '@core/interfaces';
 import { Subscription } from 'rxjs';
-
+import { NavigationService, LoggingService, ErrorService, AuthService } from '@app/core/services';
+import { BackToComponent } from '@shared/components/buttons';
 @Component({
   selector: 'app-register',
   standalone: true,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, TranslateModule, BackToComponent],
 })
 export class RegisterComponent implements OnInit, OnDestroy {
   registerForm!: FormGroup;
@@ -27,9 +26,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private registerFormBuilder: FormBuilder,
-    private router: Router,
     private errorService: ErrorService,
-    private logger: LoggingService
+    private logger: LoggingService,
+    private navService: NavigationService
   ) {}
 
   ngOnInit() {
@@ -103,17 +102,18 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
     this.authSubscription = this.authService.register(data).subscribe({
       next: (response: { detail: string }) => {
-        console.log(response);
-        this.router
-          .navigate(['/auth/login'], {
-            state: {
-              registerMessage: response.detail,
-            },
-          })
-          .then();
+        this.navService.setStateWithLang(
+          ['../login'],
+          {
+            navSuccessMessage: response.detail,
+          },
+          300
+        );
+        this.logger.info('Registration successful', response);
       },
       error: (error: HttpErrorResponse) => {
         this.errorService.handleServerErrors(this.registerForm, error);
+        this.logger.error('Registration failed', error);
       },
     });
   }

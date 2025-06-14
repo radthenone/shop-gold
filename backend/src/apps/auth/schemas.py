@@ -9,6 +9,8 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers
 
+from apps.auth.serializers import UserDataResponseSerializer
+
 auth_schema = extend_schema_view(
     verify_email=extend_schema(
         tags=["Auth"],
@@ -381,20 +383,7 @@ totp_schema = extend_schema_view(
                     {
                         "access": serializers.CharField(),
                         "refresh": serializers.CharField(),
-                        "user": inline_serializer(
-                            "UserDataResponse",
-                            {
-                                "id": serializers.UUIDField(),
-                                "email": serializers.EmailField(),
-                                "username": serializers.CharField(),
-                                "role": serializers.ChoiceField(
-                                    choices=[
-                                        ("customer", "Customer"),
-                                        ("admin", "Admin"),
-                                    ]
-                                ),
-                            },
-                        ),
+                        "user": UserDataResponseSerializer(),
                     },
                 ),
                 examples=[
@@ -416,6 +405,7 @@ totp_schema = extend_schema_view(
         },
     ),
     deactivate=extend_schema(
+        request=None,
         tags=["Totp"],
         responses={
             200: OpenApiResponse(
@@ -436,6 +426,7 @@ totp_schema = extend_schema_view(
     ),
     generate_recovery_codes=extend_schema(
         tags=["Totp"],
+        request=None,
         responses={
             200: OpenApiResponse(
                 response=inline_serializer(
@@ -459,6 +450,7 @@ totp_schema = extend_schema_view(
     ),
     recovery_codes=extend_schema(
         tags=["Totp"],
+        request=None,
         responses={
             200: OpenApiResponse(
                 response=inline_serializer(
@@ -486,39 +478,42 @@ totp_schema = extend_schema_view(
             request=inline_serializer(
                 "TotpVerifyRecoveryCodeRequest",
                 {
-                    "access": serializers.CharField(),
-                    "refresh": serializers.CharField(),
-                    "user": inline_serializer(
-                        "UserResponse",
-                        {
-                            "id": serializers.UUIDField(),
-                            "email": serializers.EmailField(),
-                            "username": serializers.CharField(),
-                            "role": serializers.ChoiceField(
-                                choices=[
-                                    ("customer", "Customer"),
-                                    ("admin", "Admin"),
-                                ]
-                            ),
-                        },
-                    ),
+                    "code": serializers.CharField(min_length=6, max_length=6),
                 },
             ),
             examples=[
                 OpenApiExample(
-                    "TotpVerifyResponse",
-                    value={
-                        "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "user": {
-                            "id": "973e1d8b-299b-4ef2-941e-82015...",
-                            "email": "user@example.com",
-                            "username": "example_user",
-                            "role": "customer",
-                        },
-                    },
+                    "TotpVerifyRecoveryCodeRequest",
+                    value={"code": "123456"},
                 )
             ],
         ),
+        responses={
+            200: OpenApiResponse(
+                response=inline_serializer(
+                    "TotpVerifyRecoveryCodeResponse",
+                    {
+                        "access": serializers.CharField(),
+                        "refresh": serializers.CharField(),
+                        "user": UserDataResponseSerializer(),
+                    },
+                ),
+                examples=[
+                    OpenApiExample(
+                        "TotpVerifyRecoveryCodeResponse",
+                        value={
+                            "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                            "user": {
+                                "id": "973e1d8b-299b-4ef2-941e-82015...",
+                                "email": "user@example.com",
+                                "username": "example_user",
+                                "role": "customer",
+                            },
+                        },
+                    )
+                ],
+            )
+        },
     ),
 )

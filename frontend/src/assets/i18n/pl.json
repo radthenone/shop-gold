@@ -1,12 +1,101 @@
 {
-  "REGISTER": {
-    "TITLE": "Rejestracja",
-    "FIRST_NAME": "Imię",
-    "LAST_NAME": "Nazwisko",
+  "STATUS": {
+    "ENABLED": "Aktywny",
+    "DISABLED": "Nieaktywny"
+  },
+  "ERROR": {
+    "TOTP": {
+      "INVALID_CODE": "Proszę wprowadzić 6-cyfrowy kod do weryfikacji.",
+      "FAILED_LOAD": "Nie udało się załadować danych konfiguracyjnych TOTP. Spróbuj ponownie później."
+    },
+    "FIELD_REQUIRED": "To pole jest wymagane",
+    "INVALID_EMAIL": "Proszę wprowadzić poprawny adres e-mail",
+    "INVALID_EMAIL_FORMAT": "Proszę wprowadzić poprawny format adresu e-mail.",
+    "MIN_LENGTH": "Minimalna długość to {min} znaków",
+    "MAX_LENGTH": "Maksymalna długość to {max} znaków",
+    "PATTERN_MISMATCH": "To pole nie pasuje do wymaganego wzorca",
+    "PASSWORD_MISMATCH": "Hasła nie pasują do siebie",
+    "PASSWORDS_DONT_MATCH": "Podane hasła nie są identyczne",
+    "UPPERCASE_REQUIRED": "Przynajmniej jedna wielka litera jest wymagana",
+    "LOWERCASE_REQUIRED": "Przynajmniej jedna mała litera jest wymagana",
+    "NUMBER_REQUIRED": "Przynajmniej jedna cyfra jest wymagana",
+    "SPECIAL_CHAR_REQUIRED": "Przynajmniej jeden znak specjalny jest wymagany",
+    "VALIDATION": "Błąd walidacji: {error}",
+    "GENERIC": "Wystąpił błąd, spróbuj ponownie później.",
+    "NO_VERIFICATION_KEY": "Brak klucza weryfikacyjnego w URL. Skontaktuj się z pomocą techniczną.",
+    "PAGE_NOT_FOUND": "Strona nie znaleziona. Sprawdź adres URL lub skontaktuj się z pomocą techniczną.",
+    "NOT_LOGGED_IN": "Nie jesteś zalogowany. Zaloguj się, aby kontynuować."
+  },
+  "SUCCESS": {
+    "TOTP": {
+      "ACTIVATE_SUCCESS": "Kod TOTP został pomyślnie aktywowany.",
+      "RECOVERY_CODES": "Twoje kody odzyskiwania są gotowe. Proszę zapisać je w bezpiecznym miejscu."
+    },
+    "CHECK_EMAIL": "Sprawdź swój e-mail, aby uzyskać link weryfikacyjny.",
+    "EMAIL_RESEND": "E-mail weryfikacyjny został ponownie wysłany."
+  },
+  "LOADING": {
+    "TOTP": {
+      "SETUP": "Ładowanie danych konfiguracyjnych..."
+    },
+    "EMAIL_RESEND": "Ponowne wysyłanie e-maila weryfikacyjnego...",
+    "EMAIL_IN_PROGRESS": "Weryfikacja e-maila w toku..."
+  },
+  "BUTTON": {
+    "TOTP": {
+      "ACTIVATE_BUTTON": "Aktywuj kod TOTP",
+      "CONTINUE_BUTTON": "Kontynuuj do weryfikacji"
+    },
+    "RETRY": "Spróbuj ponownie",
+    "REGISTER": "Zarejestruj się",
+    "LOGIN": "Zaloguj się",
+    "LOGOUT": "Wyloguj się",
+    "BACK_TO_LOGIN": "Powrót do logowania",
+    "BACK_TO_REGISTRATION": "Nie masz konta? Zarejestruj się tutaj",
+    "CHECK_EMAIL": "Sprawdź swój e-mail",
+    "ENGLISH": "Angielski",
+    "POLISH": "Polski",
+    "COPY": "Kopiuj",
+    "COPY_SUCCESS": "Skopiowano do schowka",
+    "COPY_ERROR": "Błąd podczas kopiowania do schowka",
+    "GO_BACK": "Wróć"
+  },
+  "FIELD": {
+    "USERNAME": "Nazwa użytkownika",
     "EMAIL": "Email",
     "PASSWORD": "Hasło",
-    "CONFIRM_PASSWORD": "Potwierdź Hasło",
-    "REGISTER_BUTTON": "Zarejestruj się",
-    "ALREADY_HAVE_ACCOUNT": "Masz już konto? Zaloguj się tutaj."
+    "CONFIRM_PASSWORD": "Potwierdź hasło",
+    "FIRST_NAME": "Imię",
+    "LAST_NAME": "Nazwisko",
+    "TERMS_AND_CONDITIONS": "Zasady i warunki",
+    "TERM_LINK": "Regulamin",
+    "PRIVACY_LINK": "Polityka prywatności",
+    "EMAIL_RESEND": "Panel ponownego wysłania e-maila weryfikacyjnego",
+    "EMAIL_RESEND_DESC": "Wprowadź swój adres e-mail, aby otrzymać nowy e-mail weryfikacyjny."
+  },
+  "FIELD_PLACEHOLDER": {
+    "USERNAME": "Wpisz swoją nazwę użytkownika",
+    "EMAIL": "Wpisz swój adres e-mail",
+    "PASSWORD": "Twoje hasło",
+    "CONFIRM_PASSWORD": "Potwierdź swoje hasło",
+    "FIRST_NAME": "Wpisz swoje imię",
+    "LAST_NAME": "Wpisz swoje nazwisko"
+  },
+  "LABEL": {
+    "TOTP": {
+      "ACTIVATE_CODE": "Aktywuj kod TOTP"
+    },
+    "REGISTER": "Rejestracja",
+    "LOGIN": "Logowanie",
+    "CHECK_EMAIL": "Sprawdź swój e-mail, aby uzyskać link weryfikacyjny"
+  },
+  "TITLE": {
+    "TOTP": {
+      "TOTP_SETUP_TITLE": "Konfiguracja uwierzytelniania dwuskładnikowego (TOTP)",
+      "SETUP_STEP_1": "Krok 1: Skanuj kod QR",
+      "SETUP_STEP_1_EXTRA": "Użyj aplikacji uwierzytelniającej, aby zeskanować kod QR lub wprowadź klucz ręcznie.",
+      "SETUP_STEP_2": "Krok 2: Wprowadź kod weryfikacyjny",
+      "SETUP_STEP_2_EXTRA": "Wprowadź 6-cyfrowy kod weryfikacyjny wygenerowany przez aplikację uwierzytelniającą."
+    }
   }
 }

@@ -1,11 +1,6 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: '/',
-    pathMatch: 'full',
-  },
+const mainRoutes: Routes = [
   {
     path: '',
     loadComponent: () => import('@features/home/home.component').then((m) => m.HomeComponent),
@@ -21,12 +16,36 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'totp',
+    loadChildren: () => import('@features/totp/totp.routes').then((m) => m.TOTP_ROUTES),
+  },
+  {
     path: '404',
     loadComponent: () =>
       import('@shared/components/not-found/page-not-found.component').then((m) => m.PageNotFoundComponent),
   },
   {
     path: '**',
-    redirectTo: '/404',
+    redirectTo: '404',
+  },
+];
+
+export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: '/pl',
+    pathMatch: 'full',
+  },
+  {
+    path: 'pl',
+    children: mainRoutes,
+  },
+  {
+    path: 'en',
+    children: mainRoutes,
+  },
+  {
+    path: '**',
+    redirectTo: '/pl/404',
   },
 ];

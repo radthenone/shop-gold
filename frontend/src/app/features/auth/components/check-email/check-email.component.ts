@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
-import { ErrorService } from '../../../../core/services/error.service';
+import { AuthService, ErrorService, TranslateService } from '@core/services';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
+import { BackToComponent } from '@shared/components/buttons';
 
 @Component({
   selector: 'app-check-email',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule, BackToComponent],
   templateUrl: './check-email.component.html',
   styleUrls: ['./check-email.component.css'],
 })
@@ -20,7 +21,8 @@ export class CheckEmailComponent {
 
   constructor(
     private authService: AuthService,
-    private errorService: ErrorService
+    private errorService: ErrorService,
+    private translate: TranslateService
   ) {}
 
   onCheckEmailSubmit() {
@@ -29,24 +31,23 @@ export class CheckEmailComponent {
     this.emailError = null;
 
     if (!this.email.trim()) {
-      this.emailError = 'Please enter an email address.';
+      this.emailError = this.translate.translateFunction('ERROR.INVALID_EMAIL');
       return;
     }
 
     const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
     if (!emailPattern.test(this.email)) {
-      this.emailError = 'Please enter the correct e-mail address.';
+      this.emailError = this.translate.translateFunction('ERROR.INVALID_EMAIL_FORMAT');
       return;
     }
 
     this.authService.checkEmail(this.email).subscribe({
       next: (response) => {
-        console.log('Email check successful:', response);
-        this.emailSuccess = response.detail || 'Email check was successful.';
+        this.emailSuccess = response.detail || this.translate.translateFunction('SUCCESS.CHECK_EMAIL');
       },
       error: (error: HttpErrorResponse) => {
         this.emailError =
-          this.errorService.handleError(error, 'email') || 'An error occurred while checking the email.';
+          this.errorService.handleError(error, 'email') || this.translate.translateFunction('ERROR.GENERIC');
       },
     });
   }

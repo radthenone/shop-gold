@@ -1,0 +1,14 @@
+<div class="dropdown-content" [class.show]="isDropdownOpen">
+  <div *ngIf="user">
+    <p>{{ user.email }}</p>
+    <hr />
+    <a class="dropdown-item"><app-logout></app-logout></a>
+  </div>
+  <div *ngIf="!user">
+    <p>{{ 'ERROR.NOT_LOGGED_IN' | translate }}</p>
+    <hr />
+    <a class="dropdown-item">
+      <app-back-to [label]="'BUTTON.BACK_TO_LOGIN'" [route]="['auth', 'login']"></app-back-to>
+    </a>
+  </div>
+</div>

@@ -1,25 +1,29 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { AuthTokens, AuthResponse, AuthUser, RegisterRequest, LoginRequest } from '../models/auth.model';
-import { MfaResponse } from '../models/totp.model';
+import { AuthTokens, AuthResponse, AuthUser, RegisterRequest, LoginRequest } from '../interfaces/api/auth.interface';
+import { MfaResponse } from '../interfaces/api/totp.interface';
 import { UrlConfigService } from './url-config.service';
+import { NavigationService } from './navigation.service';
 import { LoggingService } from './logging.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService implements OnDestroy {
-  private API_URL: string;
   private userSubject = new BehaviorSubject<AuthUser | null>(null);
   public user$ = this.userSubject.asObservable();
 
+  private get API_URL(): string {
+    return this.urlConfigService.getApiUrl();
+  }
   constructor(
     private http: HttpClient,
     private router: Router,
     private urlConfigService: UrlConfigService,
+    private navigationService: NavigationService,
     private loggingService: LoggingService
   ) {
     const user = localStorage.getItem('user');
@@ -31,8 +35,7 @@ export class AuthService implements OnDestroy {
       }
     }
     window.addEventListener('storage', this.storageEventListener);
-    this.API_URL = this.urlConfigService.getApiUrl();
-    this.loggingService.info('API URL:', this.API_URL);
+    this.loggingService.info('API URL will be dynamically determined:', this.urlConfigService.getApiUrl());
   }
 
   ngOnDestroy(): void {
@@ -56,30 +59,34 @@ export class AuthService implements OnDestroy {
       .post<AuthResponse | MfaResponse>(`${this.API_URL}/auth/login/`, { email: data.email, password: data.password })
       .pipe(
         tap((response) => {
+          this.loggingService.info('AuthService - login response:', response);
           if ('access' in response && 'refresh' in response) {
             this.setSession(response);
           }
+        }),
+        catchError((error) => {
+          this.loggingService.error('AuthService - login failed:', error);
+          return throwError(() => error);
         })
       );
   }
-
   logout(): void {
     const token = this.getAuthToken();
 
     if (!token) {
       this.clearSession();
-      this.router.navigate(['/auth/login']).then();
+      this.navigationService.navigateWithLang(['auth', 'login']).then();
       return;
     }
 
     this.http.post(`${this.API_URL}/auth/logout/`, {}).subscribe({
       next: () => {
         this.clearSession();
-        this.router.navigate(['/auth/login']).then();
+        this.navigationService.navigateWithLang(['auth', 'login']).then();
       },
       error: () => {
         this.clearSession();
-        this.router.navigate(['/auth/login']).then();
+        this.navigationService.navigateWithLang(['auth', 'login']).then();
       },
     });
   }
@@ -118,7 +125,7 @@ export class AuthService implements OnDestroy {
     }
   }
 
-  private setSession(response: AuthResponse): void {
+  public setSession(response: AuthResponse): void {
     if (response.access) {
       localStorage.setItem('access_token', response.access);
     }

@@ -1,0 +1,32 @@
+<div>
+  <label for="code">{{ 'LABEL.TOTP.ACTIVATE_CODE' | translate }}</label>
+  <input
+    id="code"
+    type="text"
+    maxlength="6"
+    minlength="6"
+    placeholder="000000"
+    [(ngModel)]="activateCode"
+    class="form-control"
+    [class.is-invalid]="codeError"
+    autocomplete="one-time-code"
+    (input)="onCodeInput()"
+    (blur)="setActivated()"
+  />
+  <div *ngIf="codeError" class="error-message">{{ codeError }}</div>
+</div>
+
+<button type="button" class="btn btn-primary" (click)="onCodeActivate()" [disabled]="isActivated">
+  {{ 'BUTTON.TOTP.ACTIVATE_BUTTON' | translate }}
+</button>
+<button type="button" class="btn btn-secondary" (click)="onGoBack()" [disabled]="isActivated">
+  {{ 'BUTTON.GO_BACK' | translate }}
+
+  <div *ngIf="isActivated" class="success-message">
+    <p>{{ 'SUCCESS.TOTP.ACTIVATE_SUCCESS' | translate }}</p>
+    <p>{{ 'SUCCESS.TOTP.RECOVERY_CODES' | translate }}</p>
+    <ul>
+      <li *ngFor="let code of recoveryCodes">{{ code }}</li>
+    </ul>
+  </div>
+</button>

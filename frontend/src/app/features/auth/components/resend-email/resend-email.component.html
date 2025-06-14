@@ -1,0 +1,38 @@
+<h2 class="card-title text-center mb-4">{{ 'FIELD.EMAIL_RESEND' | translate }}</h2>
+
+<p class="text-muted text-center mb-4">{{ 'FIELD.EMAIL_RESEND_DESC' | translate }}</p>
+
+<!-- Success Message -->
+<div *ngIf="successMessage" class="alert alert-success" role="alert">
+  <i class="fas fa-check-circle me-2"></i>
+  {{ successMessage }}
+</div>
+
+<!-- Form -->
+<form (ngSubmit)="onSubmit()" #resendForm="ngForm">
+  <div class="mb-3">
+    <label for="email" class="form-label">{{ 'FIELD.EMAIL' | translate }}</label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      class="form-control"
+      [(ngModel)]="email"
+      placeholder="{{ 'FIELD_PLACEHOLDER.EMAIL' | translate }}"
+      [disabled]="isLoading"
+      required
+      autocomplete="email"
+    />
+    <div *ngIf="isEmailInvalid()" class="invalid-feedback">{{ errorMessage }}</div>
+  </div>
+
+  <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+      {{ isLoading ? 'LOADING.EMAIL_RESEND' : 'SUCCESS.EMAIL_RESEND' | translate }}
+    </button>
+  </div>
+</form>
+
+<!-- Back to Login -->
+<app-back-to [label]="'BUTTON.BACK_TO_LOGIN'" [route]="['auth', 'login']"></app-back-to>

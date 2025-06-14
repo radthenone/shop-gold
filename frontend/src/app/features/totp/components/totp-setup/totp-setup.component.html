@@ -1,0 +1,34 @@
+<div>
+  <h2>{{ 'TITLE.TOTP.TOTP_SETUP_TITLE' | translate }}</h2>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>{{ 'LOADING.TOTP.SETUP' | translate }}</p>
+  </div>
+
+  <div *ngIf="data && !isLoading">
+    <!-- QR Code Section -->
+    <h3>{{ 'TITLE.TOTP.SETUP_STEP_1' | translate }}</h3>
+    <p>{{ 'TITLE.TOTP.SETUP_STEP_1_EXTRA' | translate }}</p>
+    <div class="qr-code-wrapper" [innerHTML]="data.qrCode"></div>
+
+    <!-- Manual Entry Section -->
+    <h3>{{ 'TITLE.TOTP.SETUP_STEP_2' | translate }}</h3>
+    <p>{{ 'TITLE.TOTP.SETUP_STEP_2_EXTRA' | translate }}</p>
+    <div class="secret-key">
+      <code>{{ data.secret }}</code>
+      <app-copy-data [textToCopy]="data.secret" (copied)="onCopied($event)"></app-copy-data>
+      <p *ngIf="copiedMessage">{{ copiedMessage }}</p>
+    </div>
+  </div>
+
+  <div>
+    <button type="button" class="primary-btn" (click)="proceedToVerification()">
+      {{ 'BUTTON.TOTP.CONTINUE_BUTTON' | translate }}
+    </button>
+  </div>
+
+  <div *ngIf="!data && !isLoading" class="error-state">
+    <p>{{ 'ERROR.TOTP.FAILED_LOAD' | translate }}</p>
+    <button type="button" class="secondary-btn" (click)="getSetupData()">{{ 'BUTTON.RETRY' | translate }}</button>
+  </div>
+</div>

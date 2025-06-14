@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { TranslateService as DefaultTranslateService } from '@ngx-translate/core';
 import { UrlConfigService } from '@core/services/url-config.service';
 import { Router } from '@angular/router';
+import { combineLatest } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,16 +13,40 @@ export class TranslateService {
     private urlConfigService: UrlConfigService,
     private router: Router
   ) {
+    // Initialize supported languages
     this.translate.addLangs(['pl', 'en']);
-    const defaultLang = this.urlConfigService.getLanguage();
-    this.translate.setDefaultLang(defaultLang);
-    const browserLang = this.translate.getBrowserLang();
-    const langToUse = browserLang?.match(/pl|en/) ? browserLang : defaultLang;
-    this.translate.use(langToUse);
 
-    if (this.urlConfigService.getLanguage() !== this.translate.currentLang) {
-      this.urlConfigService.changeLanguage(this.translate.currentLang);
-    }
+    // Get language from URL
+    const langFromUrl = this.urlConfigService.getLanguage();
+
+    // Set default language
+    this.translate.setDefaultLang(langFromUrl);
+
+    // Load both static and backend translations
+    this.loadAllTranslations(langFromUrl);
+  }
+
+  /**
+   * Load both static translations and backend translations
+   */
+  private loadAllTranslations(language: string): void {
+    // Load static translations from JSON files
+    const staticTranslations$ = this.translate.use(language);
+
+    // Combine both translation sources
+    combineLatest([staticTranslations$]).subscribe({
+      next: ([staticTranslations]) => {
+        // Set the static translations
+        this.translate.setTranslation(language, staticTranslations, true);
+
+        console.log(`All translations loaded successfully for language: ${language}`);
+      },
+      error: (error) => {
+        console.error(`Error loading translations for ${language}:`, error);
+        // Fallback to static translations only
+        this.translate.use(language);
+      },
+    });
   }
 
   translateFunctionAsync(key: string, params?: any): Promise<string> {
@@ -33,7 +58,35 @@ export class TranslateService {
   }
 
   translateFunction(key: string, params?: any): string {
-    return this.translate.instant(key, params);
+    // Check if translations are loaded for the key
+    const translationWithoutParams = this.translate.instant(key);
+
+    // Manual interpolation as workaround for ngx-translate parameter issues
+    if (params && translationWithoutParams !== key) {
+      let manualResult = translationWithoutParams;
+      Object.keys(params).forEach((paramKey) => {
+        manualResult = manualResult.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), params[paramKey]);
+      });
+      return manualResult;
+    }
+
+    // Try with params first
+    const result = this.translate.instant(key, params);
+
+    // Check if translations are loaded
+    if (result === key) {
+      // Translation not found for key
+      // Fallback: try manual interpolation with key
+      if (params) {
+        let fallbackResult = key;
+        Object.keys(params).forEach((paramKey) => {
+          fallbackResult = fallbackResult.replace(`{${paramKey}}`, params[paramKey]);
+        });
+        return fallbackResult;
+      }
+    }
+
+    return result;
   }
 
   setLanguage(newLang: string): void {
@@ -43,10 +96,9 @@ export class TranslateService {
       return;
     }
 
-    this.translate.use(newLang);
+    // Load all translations for the new language
+    this.loadAllTranslations(newLang);
     this.urlConfigService.changeLanguage(newLang);
-
-    console.log('address', this.router.url);
 
     const currentUrl = this.router.url;
     let newUrl: string;
@@ -71,7 +123,7 @@ export class TranslateService {
     if (newUrl !== currentUrl) {
       this.router.navigateByUrl(newUrl).then((success) => {
         if (!success) {
-          console.error('Nawigacja do nowego URL językowego nie powiodła się.');
+          // Navigation to new language URL failed
           this.translate.use(currentGlobalLang);
           this.urlConfigService.changeLanguage(currentGlobalLang);
         }
